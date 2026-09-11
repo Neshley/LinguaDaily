@@ -1,0 +1,19 @@
+Linguadaily Vercel fix
+
+CONTENT STATUS
+- Pre-generated learning library: 19,902 items
+- Languages: Chinese, Japanese, Spanish, French, German, Korean
+- Chinese varieties in the library: Mandarin (zh-cmn) and Cantonese (zh-yue)
+- Static content files: public/data/languages/*.json
+
+VERCEL STATUS
+- Vite build no longer bundles/starts the Express server
+- Vercel SPA rewrite configured
+- SQLite runtime files ignored by Vercel
+- Content is served from static files, so it does not depend on a writable Vercel filesystem
+
+LOCAL CONTENT UPDATE
+npm run content:export
+
+DEPLOY
+npm run build

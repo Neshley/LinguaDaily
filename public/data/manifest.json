@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2026-09-11T20:56:47.023Z",
+  "totalItems": 19902,
+  "languages": [
+    {
+      "id": "zh",
+      "name": "Chinese",
+      "nativeName": "中文",
+      "defaultVarietyId": "zh-cmn"
+    },
+    {
+      "id": "fr",
+      "name": "French",
+      "nativeName": "Français",
+      "defaultVarietyId": "fr-fr"
+    },
+    {
+      "id": "de",
+      "name": "German",
+      "nativeName": "Deutsch",
+      "defaultVarietyId": "de-de"
+    },
+    {
+      "id": "ja",
+      "name": "Japanese",
+      "nativeName": "日本語",
+      "defaultVarietyId": "ja-jp"
+    },
+    {
+      "id": "ko",
+      "name": "Korean",
+      "nativeName": "한국어",
+      "defaultVarietyId": "ko-kr"
+    },
+    {
+      "id": "es",
+      "name": "Spanish",
+      "nativeName": "Español",
+      "defaultVarietyId": "es-es"
+    }
+  ]
+}
