@@ -13,3 +13,93 @@
     font-family: 'JetBrains Mono', ui-monospace, monospace;
   }
 }
+
+
+@layer base {
+  html {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body, #root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  img, svg, video, canvas {
+    max-width: 100%;
+  }
+
+  button, input, select, textarea {
+    max-width: 100%;
+  }
+
+  button, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 767px) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Keep dense desktop layouts from creating a horizontal page scroll. */
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  pre, code {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Comfortable mobile scrolling without visible scrollbar chrome. */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+
+  /* Better touch targets for icon-only controls that are smaller on desktop. */
+  button.min-h-\[40px\], button.min-h-\[44px\] {
+    touch-action: manipulation;
+  }
+}
+
+@media (max-width: 379px) {
+  /* Ultra-narrow phones: give the content the room that matters most. */
+  .mobile-hide-narrow {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Scale large desktop cards down one step on phones while preserving hierarchy. */
+  .p-8 { padding: 1.25rem !important; }
+  .p-6 { padding: 1rem !important; }
+  .p-5 { padding: 1rem !important; }
+  .p-4\.5 { padding: 0.875rem !important; }
+
+  /* Avoid oversized section spacing on compact screens. */
+  .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+
+  /* Full-width controls are easier to use with thumbs. */
+  input, select, textarea { min-height: 42px; }
+}
