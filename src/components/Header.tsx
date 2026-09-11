@@ -35,16 +35,16 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 dark:bg-slate-900/95 dark:border-slate-800">
-      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand & Language Switcher */}
-        <div className="flex items-center gap-1.5 sm:gap-4 min-w-0 flex-1">
-          <div className="flex items-center gap-2 shrink-0 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          <div className="flex items-center gap-2 shrink-0">
             <div className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl bg-linear-to-tr from-slate-900 via-indigo-950 to-slate-800 text-white flex items-center justify-center font-bold shadow-xs">
               <span className="text-sm sm:text-base tracking-tight font-serif">文</span>
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base tracking-tight truncate max-w-[92px] xs:max-w-none">
+                <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base tracking-tight truncate">
                   LinguaDaily
                 </span>
                 <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-mono hidden lg:inline-flex">
@@ -63,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="open-language-modal-header-btn"
             onClick={onOpenLanguageModal}
-            className="flex items-center gap-1 sm:gap-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 sm:px-3 py-1.5 min-h-[40px] sm:min-h-[44px] cursor-pointer text-left shadow-xs group shrink-0"
+            className="flex items-center gap-1.5 sm:gap-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 sm:px-3 py-1.5 min-h-[40px] sm:min-h-[44px] cursor-pointer text-left shadow-xs group shrink-0"
             title="Switch Language Family, Variety, or Writing System"
           >
             <span className="text-lg sm:text-xl leading-none">{currentLang.flag}</span>
@@ -80,11 +80,11 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Right Stats & Tools */}
-        <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Daily Streak Indicator */}
           <div
             id="streak-indicator"
-            className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 min-h-[40px] sm:min-h-[44px] bg-amber-50 border border-amber-200 rounded-xl text-amber-800 shrink-0"
+            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 min-h-[40px] sm:min-h-[44px] bg-amber-50 border border-amber-200 rounded-xl text-amber-800 shrink-0"
             title={`${stats.streakDays} day practice streak`}
           >
             <Flame className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse shrink-0" />
@@ -112,7 +112,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* XP Badge */}
           <div
             id="xp-badge"
-            className="flex items-center gap-1 px-1.5 sm:px-2.5 py-1.5 min-h-[40px] sm:min-h-[44px] bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-700 shrink-0"
+            className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 min-h-[40px] sm:min-h-[44px] bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-700 shrink-0"
             title={`${stats.xp} Experience Points`}
           >
             <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
