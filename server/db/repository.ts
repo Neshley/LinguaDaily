@@ -216,12 +216,21 @@ export class VocabularyRepository {
   /**
    * Get random sample of items
    */
-  public getRandom(language: string, count: number = 10, category?: string): LearningItem[] {
+  public getRandom(
+    language: string,
+    count: number = 10,
+    category?: string,
+    difficulty?: string
+  ): LearningItem[] {
     const langIds = this.itemsByLanguage.get(language) || this.itemsByLanguage.get('zh-cmn') || [];
     let pool = langIds.map((id) => this.itemsById.get(id)!).filter(Boolean);
 
     if (category && category !== 'All Categories') {
       pool = pool.filter((i) => i.category === category);
+    }
+
+    if (difficulty && difficulty !== 'all') {
+      pool = pool.filter((i) => i.difficulty === difficulty);
     }
 
     const shuffled = [...pool].sort(() => 0.5 - Math.random());
@@ -231,10 +240,16 @@ export class VocabularyRepository {
   /**
    * Get curated recommendations based on intent
    */
-  public getRecommendations(language: string, type: string, limit: number = 10): LearningItem[] {
+  public getRecommendations(
+    language: string,
+    currentBand: string = 'high',
+    strategy: string = 'expand_core',
+    limit: number = 10
+  ): LearningItem[] {
     const langIds = this.itemsByLanguage.get(language) || this.itemsByLanguage.get('zh-cmn') || [];
     const pool = langIds.map((id) => this.itemsById.get(id)!).filter(Boolean);
 
+    const type = strategy || currentBand;
     switch (type) {
       case 'popular':
       case 'beginner':
@@ -267,6 +282,12 @@ export class VocabularyRepository {
       case 'phrases':
         return pool
           .filter((i) => i.itemType === 'phrase' || i.itemType === 'collocation' || i.itemType === 'question')
+          .slice(0, limit);
+
+      case 'expand_core':
+        return pool
+          .filter((i) => (currentBand === 'high' ? i.frequencyBand === 'medium' : i.frequencyBand === currentBand))
+          .sort((a, b) => a.frequencyRank - b.frequencyRank)
           .slice(0, limit);
 
       default:
