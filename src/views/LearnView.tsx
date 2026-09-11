@@ -402,6 +402,11 @@ export const LearnView: React.FC<LearnViewProps> = ({
                           <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-600 dark:text-slate-300 uppercase">
                             {item.partOfSpeech || item.itemType}
                           </span>
+                          {item.contentQuality?.tier === 'generated-pattern' && (
+                            <span className="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+                              Generated pattern
+                            </span>
+                          )}
                           <span className="px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">
                             #{item.frequencyRank}
                           </span>

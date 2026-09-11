@@ -467,6 +467,9 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
                         <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
                           {item.partOfSpeech}
                         </span>
+                        {item.contentQuality?.tier === 'generated-pattern' && (
+                          <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-[10px] font-semibold text-amber-700 dark:text-amber-300">Generated</span>
+                        )}
                         <span
                           className={`px-2 py-0.5 rounded-md text-[10px] font-semibold ${
                             item.difficulty === 'beginner'

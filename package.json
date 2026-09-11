@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "npm run verify:content && vite build",
+    "build": "npm run verify:content && npm run audit:content && vite build",
     "start": "node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "content:export": "node scripts/export-content.mjs",
-    "verify:content": "node scripts/verify-content.mjs"
+    "verify:content": "node scripts/verify-content.mjs",
+    "audit:content": "node scripts/content-quality-audit.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

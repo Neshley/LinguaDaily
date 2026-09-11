@@ -1,4 +1,4 @@
-import { LearningItem, VocabularyQueryResult, ContentAuditReport } from '../../server/types/vocabulary';
+import { LearningItem, VocabularyQueryResult, ContentAuditReport, ContentQualityTier } from '../../server/types/vocabulary';
 import { DailyGoalSettings, SupportedLanguageId, UserStats, VocabularyWord } from '../types';
 
 /**
@@ -61,11 +61,15 @@ export interface VocabularySearchParams {
   page?: number;
   limit?: number;
   sortBy?: 'frequency' | 'alphabetical' | 'difficulty' | 'random';
+  qualityTier?: ContentQualityTier | 'all';
 }
 
 export async function searchVocabulary(params: VocabularySearchParams): Promise<VocabularyQueryResult> {
   const data = await loadLanguage(params.language || 'zh');
   let items = applyVariant(data.items, params.languageVariant);
+  if (params.qualityTier && params.qualityTier !== 'all') {
+    items = items.filter(i => i.contentQuality?.tier === params.qualityTier);
+  }
   const query = (params.q || '').trim().toLocaleLowerCase();
 
   if (params.category && params.category !== 'All Categories') items = items.filter(i => i.category === params.category);
@@ -81,7 +85,11 @@ export async function searchVocabulary(params: VocabularySearchParams): Promise<
   if (sortBy === 'alphabetical') items = [...items].sort((a, b) => a.word.localeCompare(b.word));
   else if (sortBy === 'difficulty') items = [...items].sort((a, b) => a.difficultyScore - b.difficultyScore);
   else if (sortBy === 'random') items = [...items].sort(() => Math.random() - 0.5);
-  else items = [...items].sort((a, b) => a.frequencyRank - b.frequencyRank);
+  else items = [...items].sort((a, b) => {
+    const aq = a.contentQuality?.trustedForCoreLearning ? 0 : 1;
+    const bq = b.contentQuality?.trustedForCoreLearning ? 0 : 1;
+    return aq - bq || a.frequencyRank - b.frequencyRank;
+  });
 
   const page = Math.max(1, params.page || 1);
   const limit = Math.min(100, Math.max(1, params.limit || 20));
@@ -106,7 +114,8 @@ export async function fetchVocabularyCategories(language?: string): Promise<{ na
 
 export async function fetchRandomVocabulary(language: string, count = 20, category?: string, difficulty?: string): Promise<LearningItem[]> {
   const data = await loadLanguage(language);
-  let pool = applyVariant(data.items, language === 'zh-cmn' || language === 'zh-yue' ? language : undefined);
+  let pool = applyVariant(data.items, language === 'zh-cmn' || language === 'zh-yue' ? language : undefined)
+    .filter(i => i.contentQuality?.trustedForCoreLearning !== false);
   if (category && category !== 'All Categories') pool = pool.filter(i => i.category === category);
   if (difficulty && difficulty !== 'all') pool = pool.filter(i => i.difficulty === difficulty);
   return [...pool].sort(() => Math.random() - 0.5).slice(0, Math.min(100, Math.max(1, count)));
@@ -114,7 +123,7 @@ export async function fetchRandomVocabulary(language: string, count = 20, catego
 
 export async function fetchVocabularyRecommendations(language: string, currentBand = 'high', strategy = 'expand_core', limit = 10): Promise<LearningItem[]> {
   const data = await loadLanguage(language);
-  let pool = data.items.filter(i => i.frequencyBand === currentBand || i.frequencyBand === 'high');
+  let pool = data.items.filter(i => i.contentQuality?.trustedForCoreLearning !== false && (i.frequencyBand === currentBand || i.frequencyBand === 'high'));
   if (strategy === 'conversational' || strategy === 'phrases') {
     pool = data.items.filter(i => ['phrase', 'question', 'response', 'collocation'].includes(i.itemType));
   } else if (strategy === 'beginner' || strategy === 'popular') {

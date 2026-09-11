@@ -112,6 +112,7 @@ export interface LearningItem {
   culturalNote?: string;
   memoryTip?: string;
   audioUrl?: string;
+  contentQuality?: ContentQuality;
 
   // Dynamic user progress attributes
   isBookmarked?: boolean;

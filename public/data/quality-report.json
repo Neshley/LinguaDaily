@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-09-11T21:28:35.828Z",
+  "languages": [
+    {
+      "id": "de",
+      "total": 3102,
+      "core": 132,
+      "generated": 2970
+    },
+    {
+      "id": "es",
+      "total": 3150,
+      "core": 138,
+      "generated": 3012
+    },
+    {
+      "id": "fr",
+      "total": 3150,
+      "core": 133,
+      "generated": 3017
+    },
+    {
+      "id": "ja",
+      "total": 3150,
+      "core": 138,
+      "generated": 3012
+    },
+    {
+      "id": "ko",
+      "total": 3150,
+      "core": 138,
+      "generated": 3012
+    },
+    {
+      "id": "zh",
+      "total": 4200,
+      "core": 226,
+      "generated": 3974
+    }
+  ],
+  "total": 19902,
+  "core": 905,
+  "generated": 18997,
+  "issues": []
+}
