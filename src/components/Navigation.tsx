@@ -96,9 +96,9 @@ export const Navigation: React.FC<NavigationProps> = ({
       {/* Mobile Bottom Navigation Bar */}
       <nav
         aria-label="Mobile Navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-2 py-1.5 shadow-lg"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-1 py-1 shadow-lg pb-[calc(0.25rem+env(safe-area-inset-bottom,0px))]"
       >
-        <div className="flex items-center justify-around max-w-lg mx-auto">
+        <div className="flex items-center justify-around overflow-x-auto scrollbar-none max-w-lg mx-auto py-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -107,23 +107,23 @@ export const Navigation: React.FC<NavigationProps> = ({
                 key={item.id}
                 id={`mobile-nav-tab-${item.id}`}
                 onClick={() => onSelectTab(item.id)}
-                className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[48px] min-h-[44px] transition-all relative cursor-pointer ${
+                className={`flex flex-col items-center justify-center py-1 px-1.5 rounded-xl min-w-[46px] min-h-[44px] transition-all relative cursor-pointer shrink-0 ${
                   isActive
-                    ? 'text-indigo-600 dark:text-indigo-400 font-bold'
+                    ? 'text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50/80 dark:bg-indigo-950/40'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <div className="relative">
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-4.5 h-4.5" />
                   {item.badge !== undefined && (
-                    <span className="absolute -top-1 -right-2 bg-indigo-600 text-white text-[9px] font-bold px-1 rounded-full min-w-[14px] text-center">
+                    <span className="absolute -top-1 -right-2 bg-indigo-600 text-white text-[9px] font-bold px-1 rounded-full min-w-[14px] text-center leading-tight">
                       {item.badge}
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] mt-0.5 tracking-tight">{item.label}</span>
+                <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap">{item.label}</span>
                 {isActive && (
-                  <span className="absolute bottom-0 w-6 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full" />
+                  <span className="absolute bottom-0.5 w-5 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full" />
                 )}
               </button>
             );

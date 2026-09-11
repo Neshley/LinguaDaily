@@ -64,46 +64,46 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const starterWord = words.find((w) => w.status === 'new') || words[0];
 
   return (
-    <div className="space-y-6 pb-20 md:pb-8">
+    <div className="space-y-4 sm:space-y-6">
       {/* 1. Header Banner & Current Language Context */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 rounded-2xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 rounded-2xl p-4.5 sm:p-6 lg:p-8 text-white shadow-md relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-200 text-xs font-medium mb-3 backdrop-blur-xs">
-              <span className="text-base">{activeVariant.flag}</span>
-              <span>{activeVariant.name}</span>
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 text-indigo-200 text-xs font-medium mb-2.5 backdrop-blur-xs">
+              <span className="text-base leading-none">{activeVariant.flag}</span>
+              <span className="font-semibold">{activeVariant.name}</span>
               <span className="text-indigo-400">•</span>
               <span>{activeVariant.nativeName}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white mb-1.5 sm:mb-2">
               Ready to practice, learner?
             </h1>
-            <p className="text-slate-300 text-sm max-w-xl">
+            <p className="text-slate-300 text-xs sm:text-sm max-w-xl leading-relaxed">
               Learn at your own pace. Explore vocabulary, train your pronunciation, or review what you're likely to forget.
             </p>
           </div>
 
           {/* Quick Metrics */}
-          <div className="flex items-center gap-3 sm:gap-4 shrink-0 bg-white/5 p-3 sm:p-4 rounded-xl border border-white/10">
-            <div className="flex items-center gap-2 pr-3 border-r border-white/10">
-              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400">
+          <div className="flex items-center justify-around sm:justify-start gap-3 sm:gap-4 shrink-0 bg-white/5 p-3 sm:p-4 rounded-xl border border-white/10 w-full sm:w-auto">
+            <div className="flex items-center gap-2.5 pr-3 sm:pr-4 border-r border-white/10 flex-1 sm:flex-initial">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
                 <Flame className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-lg font-bold leading-tight">{stats.streakDays}</div>
-                <div className="text-[11px] text-slate-400">Day Streak</div>
+                <div className="text-base sm:text-lg font-bold leading-tight">{stats.streakDays}</div>
+                <div className="text-[10px] sm:text-[11px] text-slate-400 whitespace-nowrap">Day Streak</div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pl-1">
-              <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <div className="flex items-center gap-2.5 pl-1 flex-1 sm:flex-initial">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-lg font-bold leading-tight">{stats.totalXp ?? stats.xp ?? 0}</div>
-                <div className="text-[11px] text-slate-400">Total XP</div>
+                <div className="text-base sm:text-lg font-bold leading-tight">{stats.totalXp ?? stats.xp ?? 0}</div>
+                <div className="text-[10px] sm:text-[11px] text-slate-400 whitespace-nowrap">Total XP</div>
               </div>
             </div>
           </div>

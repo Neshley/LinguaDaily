@@ -15,6 +15,7 @@ import {
   Sparkles,
   BookOpen,
   Filter,
+  X,
 } from 'lucide-react';
 import {
   DailyGoalSettings,
