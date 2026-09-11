@@ -1,0 +1,7 @@
+{
+  "name": "LinguaDaily - Flexible Language Learning & Practice",
+  "description": "A modern, flexible language learning workspace. Discover vocabulary, practice pronunciation, train tones, drill SRS flashcards, explore grammar, and get real-time AI feedback at your own pace.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
