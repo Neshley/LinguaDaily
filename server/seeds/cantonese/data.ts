@@ -43,6 +43,16 @@ export function generateCantoneseDataset(): LearningItem[] {
     { w: '寄', p: 'gei3', m: 'to send / mail', spec: { type: 'cantonese', data: { jyutping: 'gei3', tones: [3] } } },
     { w: '查', p: 'caa4', m: 'to check / look up', spec: { type: 'cantonese', data: { jyutping: 'caa4', tones: [4] } } },
     { w: '練習', p: 'lin6 zaap6', m: 'to practice', spec: { type: 'cantonese', data: { jyutping: 'lin6 zaap6', tones: [6, 6] } } },
+    { w: '煮', p: 'zyu2', m: 'to cook', spec: { type: 'cantonese', data: { jyutping: 'zyu2', tones: [2] } } },
+    { w: '搭', p: 'daap3', m: 'to ride (transport)', spec: { type: 'cantonese', data: { jyutping: 'daap3', tones: [3] } } },
+    { w: '送', p: 'sung3', m: 'to deliver / gift', spec: { type: 'cantonese', data: { jyutping: 'sung3', tones: [3] } } },
+    { w: '借', p: 'ze3', m: 'to borrow / lend', spec: { type: 'cantonese', data: { jyutping: 'ze3', tones: [3] } } },
+    { w: '開會', p: 'hoi1 wui2', m: 'to attend meeting', spec: { type: 'cantonese', data: { jyutping: 'hoi1 wui2', tones: [1, 2] } } },
+    { w: '覆', p: 'fuk1', m: 'to reply', spec: { type: 'cantonese', data: { jyutping: 'fuk1', tones: [1] } } },
+    { w: '買單', p: 'maai5 daan1', m: 'to pay bill', spec: { type: 'cantonese', data: { jyutping: 'maai5 daan1', tones: [5, 1] } } },
+    { w: '執', p: 'zap1', m: 'to tidy / pick up', spec: { type: 'cantonese', data: { jyutping: 'zap1', tones: [1] } } },
+    { w: '傾偈', p: 'king1 gai2', m: 'to chat', spec: { type: 'cantonese', data: { jyutping: 'king1 gai2', tones: [1, 2] } } },
+    { w: '運動', p: 'wan6 dung6', m: 'to exercise', spec: { type: 'cantonese', data: { jyutping: 'wan6 dung6', tones: [6, 6] } } },
   ];
 
   const nouns = [
@@ -55,17 +65,27 @@ export function generateCantoneseDataset(): LearningItem[] {
     { w: '凍檸茶', p: 'dung3 ning4 caa4', m: 'iced lemon tea', c: 'Food, Cooking & Dining' },
     { w: '雲吞麵', p: 'wan4 tan1 min6', m: 'wonton noodles', c: 'Food, Cooking & Dining' },
     { w: '煲仔飯', p: 'bou1 zai2 faan6', m: 'claypot rice', c: 'Food, Cooking & Dining' },
+    { w: '菠蘿包', p: 'bo1 lo4 baau1', m: 'pineapple bun', c: 'Food, Cooking & Dining' },
+    { w: '腸粉', p: 'coeng2 fan2', m: 'rice noodle roll', c: 'Food, Cooking & Dining' },
+    { w: '魚蛋', p: 'jyu4 daan2', m: 'curry fish balls', c: 'Food, Cooking & Dining' },
     { w: '地鐵', p: 'dei6 tit3', m: 'MTR subway train', c: 'Travel, Transport & Directions' },
     { w: '的士', p: 'dik1 si2', m: 'taxi', c: 'Travel, Transport & Directions' },
+    { w: '巴士', p: 'baa1 si2', m: 'bus', c: 'Travel, Transport & Directions' },
+    { w: '小巴', p: 'siu2 baa1', m: 'minibus', c: 'Travel, Transport & Directions' },
+    { w: '渡輪', p: 'dou6 leon4', m: 'Star Ferry', c: 'Travel, Transport & Directions' },
     { w: '機場', p: 'gei1 coeng4', m: 'airport', c: 'Travel, Transport & Directions' },
     { w: '八達通', p: 'baat3 daat6 tung1', m: 'Octopus smart card', c: 'Shopping, Money & Finance' },
     { w: '銀包', p: 'ngan4 baau1', m: 'wallet', c: 'Shopping, Money & Finance' },
     { w: '現金', p: 'jin6 gam1', m: 'cash money', c: 'Shopping, Money & Finance' },
     { w: '信用卡', p: 'seon3 jung6 kaat1', m: 'credit card', c: 'Shopping, Money & Finance' },
+    { w: '單據', p: 'daan1 geoi3', m: 'receipt / invoice', c: 'Shopping, Money & Finance' },
     { w: '智能電話', p: 'din6 waa2', m: 'smartphone', c: 'Technology, Computers & Software' },
     { w: '手提電腦', p: 'din6 nou5', m: 'laptop computer', c: 'Technology, Computers & Software' },
     { w: '耳筒', p: 'ji5 tung2', m: 'earphones', c: 'Technology, Computers & Software' },
     { w: '廣東歌', p: 'Gwong2 dung1 go1', m: 'Cantopop song', c: 'Entertainment, Music & Cinema' },
+    { w: '港產片', p: 'gong2 caan2 pin2', m: 'Hong Kong movie', c: 'Entertainment, Music & Cinema' },
+    { w: '維多利亞港', p: 'wai4 do1 lei6 aa3 gong2', m: 'Victoria Harbour', c: 'Nature, Geography & Cities' },
+    { w: '太平山頂', p: 'taai3 ping4 saan1 deng2', m: 'Victoria Peak', c: 'Nature, Geography & Cities' },
   ];
 
   const adjectives = [
@@ -99,6 +119,7 @@ export function generateCantoneseDataset(): LearningItem[] {
   ];
 
   return generateLanguageLibrary('zh', 'zh-yue', {
+    targetCount: 1050,
     verbs,
     nouns,
     adjectives,

@@ -1,24 +1,23 @@
 import express from 'express';
 import path from 'path';
-import dotenv from 'dotenv';
-import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
+import { GoogleGenAI } from '@google/genai';
+import dotenv from 'dotenv';
 import { globalVocabularyRepo } from './server/db/repository';
 import { buildAllDatasets } from './server/seeds/builder';
+import { getDatabase } from './server/db/connection';
 
 dotenv.config();
-
-// Initialize the 18,000+ item multilingual vocabulary library into memory
-try {
-  buildAllDatasets();
-} catch (e) {
-  console.error('Failed to initialize vocabulary repository seeds:', e);
-}
 
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+
+// Initialize persistent database & seed datasets on boot
+console.log('Initializing persistent SQLite database & language libraries...');
+const db = getDatabase();
+buildAllDatasets();
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -29,44 +28,107 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Vocabulary Search & Query endpoint
-app.get('/api/vocabulary', (req, res) => {
+// Languages & varieties endpoint with capabilities
+app.get('/api/languages', (req, res) => {
   try {
-    const {
-      language,
-      category,
-      difficulty,
-      frequencyBand,
-      itemType,
-      q,
-      page,
-      limit,
-      sortBy,
-    } = req.query;
+    const langRows: any[] = db.prepare('SELECT * FROM languages ORDER BY name ASC').all();
+    const varRows: any[] = db.prepare('SELECT * FROM language_varieties ORDER BY name ASC').all();
 
-    const result = globalVocabularyRepo.query({
-      language: language as string,
-      category: category as string,
-      difficulty: difficulty as any,
-      frequencyBand: frequencyBand as any,
-      itemType: itemType as any,
-      q: q as string,
-      page: page ? parseInt(page as string, 10) : 1,
-      limit: limit ? parseInt(limit as string, 10) : 30,
-      sortBy: sortBy as any,
-    });
+    const languages = langRows.map((l) => ({
+      id: l.id,
+      name: l.name,
+      nativeName: l.native_name,
+      familyId: l.family_id,
+      defaultVarietyId: l.default_variety_id,
+      capabilities: JSON.parse(l.capabilities || '{}'),
+      varieties: varRows
+        .filter((v) => v.language_id === l.id)
+        .map((v) => ({
+          id: v.id,
+          languageId: v.language_id,
+          name: v.name,
+          nativeName: v.native_name,
+          region: v.region,
+          defaultWritingSystem: v.default_writing_system,
+          defaultPronunciationSystem: v.default_pronunciation_system,
+          capabilities: JSON.parse(v.capabilities || '{}'),
+        })),
+    }));
 
-    res.json({ success: true, ...result });
+    res.json({ success: true, languages });
   } catch (err: any) {
-    console.error('Error in GET /api/vocabulary:', err);
+    console.error('Error in GET /api/languages:', err);
     res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
 
+// Categories endpoint with real-time item counts
+app.get('/api/categories', (req, res) => {
+  try {
+    const { language } = req.query;
+    const categories = globalVocabularyRepo.getCategories(language as string);
+    res.json({
+      success: true,
+      categories,
+    });
+  } catch (err: any) {
+    console.error('Error in GET /api/categories:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Primary paginated vocabulary / learning items query
+const handleVocabularyQuery = (req: express.Request, res: express.Response) => {
+  try {
+    const {
+      language,
+      languageVariant,
+      category,
+      difficulty,
+      frequencyBand,
+      itemType,
+      search,
+      page,
+      limit,
+      sortBy,
+      sortDirection,
+      bookmarkedOnly,
+      statusFilter,
+    } = req.query;
+
+    const queryResult = globalVocabularyRepo.query({
+      language: language as string,
+      languageVariant: languageVariant as string,
+      category: category as string,
+      difficulty: difficulty as any,
+      frequencyBand: frequencyBand as any,
+      itemType: itemType as any,
+      search: search as string,
+      page: page ? parseInt(page as string, 10) : 1,
+      limit: limit ? parseInt(limit as string, 10) : 20,
+      sortBy: (sortBy as any) || 'frequencyRank',
+      sortDirection: (sortDirection as any) || 'asc',
+      bookmarkedOnly: bookmarkedOnly === 'true',
+      statusFilter: statusFilter as any,
+    });
+
+    res.json({
+      success: true,
+      ...queryResult,
+    });
+  } catch (err: any) {
+    console.error('Error in GET /api/vocabulary:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+};
+
+app.get('/api/vocabulary', handleVocabularyQuery);
+app.get('/api/learning-items', handleVocabularyQuery);
+
 // Random vocabulary items for practice/quizzes
 app.get('/api/vocabulary/random', (req, res) => {
   try {
-    const { language, count, category, difficulty } = req.query;
+    const { language, count, category, difficulty, itemType } = req.query;
     if (!language) {
       return res.status(400).json({ error: 'Language parameter is required' });
     }
@@ -75,12 +137,79 @@ app.get('/api/vocabulary/random', (req, res) => {
       language as string,
       count ? parseInt(count as string, 10) : 10,
       category as string,
-      difficulty as any
+      difficulty as any,
+      itemType as any
     );
 
     res.json({ success: true, items });
   } catch (err: any) {
     console.error('Error in GET /api/vocabulary/random:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Alias practice random
+app.get('/api/practice/random', (req, res) => {
+  try {
+    const { language, count, category, difficulty, itemType } = req.query;
+    if (!language) {
+      return res.status(400).json({ error: 'Language parameter is required' });
+    }
+
+    const items = globalVocabularyRepo.getRandom(
+      language as string,
+      count ? parseInt(count as string, 10) : 10,
+      category as string,
+      difficulty as any,
+      itemType as any
+    );
+
+    res.json({ success: true, items });
+  } catch (err: any) {
+    console.error('Error in GET /api/practice/random:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Items due for SRS review
+app.get('/api/practice/due', (req, res) => {
+  try {
+    const { language, limit } = req.query;
+    if (!language) {
+      return res.status(400).json({ error: 'Language parameter is required' });
+    }
+
+    const items = globalVocabularyRepo.getDueReviews(
+      language as string,
+      limit ? parseInt(limit as string, 10) : 20
+    );
+
+    res.json({ success: true, items });
+  } catch (err: any) {
+    console.error('Error in GET /api/practice/due:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Record practice outcome, update SRS, award calculated XP
+app.post('/api/practice/review', (req, res) => {
+  try {
+    const { itemId, languageId, activityType, rating, score } = req.body;
+    if (!itemId || !languageId) {
+      return res.status(400).json({ error: 'itemId and languageId are required' });
+    }
+
+    const result = globalVocabularyRepo.recordPractice({
+      itemId,
+      languageId,
+      activityType: activityType || 'flashcard',
+      rating,
+      score,
+    });
+
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    console.error('Error in POST /api/practice/review:', err);
     res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
@@ -122,6 +251,35 @@ app.get('/api/vocabulary/stats', (req, res) => {
   }
 });
 
+// Admin re-seed and metadata enrichment endpoint
+app.post('/api/vocabulary/reseed', (req, res) => {
+  try {
+    const force = req.body?.force !== false;
+    buildAllDatasets(force);
+    const reports = globalVocabularyRepo.getAuditReports();
+    res.json({
+      success: true,
+      totalCount: globalVocabularyRepo.totalCount,
+      reports,
+    });
+  } catch (err: any) {
+    console.error('Error in POST /api/vocabulary/reseed:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Vocabulary categories with item counts
+app.get('/api/vocabulary/categories', (req, res) => {
+  try {
+    const { language } = req.query;
+    const categories = globalVocabularyRepo.getCategories(language as string);
+    res.json({ success: true, categories });
+  } catch (err: any) {
+    console.error('Error in GET /api/vocabulary/categories:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
 // Single vocabulary item by ID
 app.get('/api/vocabulary/:id', (req, res) => {
   try {
@@ -132,6 +290,86 @@ app.get('/api/vocabulary/:id', (req, res) => {
     res.json({ success: true, item });
   } catch (err: any) {
     console.error('Error in GET /api/vocabulary/:id:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// User Progress
+app.get('/api/user/progress', (req, res) => {
+  try {
+    const { language } = req.query;
+    const progress = globalVocabularyRepo.getUserProgress('local-learner', language as string);
+    res.json({ success: true, progress });
+  } catch (err: any) {
+    console.error('Error in GET /api/user/progress:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// User Bookmarks
+app.post('/api/user/bookmarks', (req, res) => {
+  try {
+    const { itemId, bookmarked } = req.body;
+    if (!itemId) {
+      return res.status(400).json({ error: 'itemId is required' });
+    }
+    globalVocabularyRepo.toggleBookmark(itemId, bookmarked !== false);
+    res.json({ success: true, itemId, isBookmarked: bookmarked !== false });
+  } catch (err: any) {
+    console.error('Error in POST /api/user/bookmarks:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// User Custom Items
+app.post('/api/user/custom-items', (req, res) => {
+  try {
+    const created = globalVocabularyRepo.addCustomItem(req.body);
+    res.json({ success: true, item: created });
+  } catch (err: any) {
+    console.error('Error in POST /api/user/custom-items:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+app.delete('/api/user/custom-items/:id', (req, res) => {
+  try {
+    globalVocabularyRepo.deleteCustomItem(req.params.id);
+    res.json({ success: true, id: req.params.id });
+  } catch (err: any) {
+    console.error('Error in DELETE /api/user/custom-items/:id:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// User Settings
+app.get('/api/user/settings', (req, res) => {
+  try {
+    const settings = globalVocabularyRepo.getUserSettings();
+    res.json({ success: true, settings });
+  } catch (err: any) {
+    console.error('Error in GET /api/user/settings:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+app.put('/api/user/settings', (req, res) => {
+  try {
+    const updated = globalVocabularyRepo.updateUserSettings(req.body);
+    res.json({ success: true, settings: updated });
+  } catch (err: any) {
+    console.error('Error in PUT /api/user/settings:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// LocalStorage Client Migration endpoint
+app.post('/api/user/migrate', (req, res) => {
+  try {
+    const result = globalVocabularyRepo.migrateClientData(req.body);
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    console.error('Error in POST /api/user/migrate:', err);
     res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
@@ -152,7 +390,7 @@ function getGeminiClient(): GoogleGenAI {
 // AI Vocabulary Deep Dive / Explainer endpoint
 app.post('/api/gemini/explain-word', async (req, res) => {
   try {
-    const { word, language, romanization, meaning, variety, writingSystem, pronunciationSystem } = req.body;
+    const { word, language, romanization, meaning, variety, writingSystem } = req.body;
     if (!word || !language) {
       return res.status(400).json({ error: 'Word and language are required' });
     }
@@ -225,7 +463,7 @@ Do not wrap in markdown quotes if possible, output pure JSON.`;
   }
 });
 
-// AI Generate Custom Flashcard from input (e.g. user adds their own word)
+// AI Generate Custom Flashcard from input
 app.post('/api/gemini/generate-custom-word', async (req, res) => {
   try {
     const { input, targetLanguage, variety, writingSystem } = req.body;
@@ -290,7 +528,7 @@ Respond strictly in valid JSON with this format:
 // AI Interactive Dialogue / Practice check
 app.post('/api/gemini/dialogue-check', async (req, res) => {
   try {
-    const { word, language, userSentence, variety, writingSystem } = req.body;
+    const { word, language, userSentence, variety } = req.body;
     if (!word || !language || !userSentence) {
       return res.status(400).json({ error: 'word, language, and userSentence are required' });
     }

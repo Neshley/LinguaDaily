@@ -13,7 +13,8 @@ export type ItemType =
   | 'collocation'
   | 'question'
   | 'response'
-  | 'idiom';
+  | 'idiom'
+  | 'sentence';
 
 export interface ExampleSentence {
   native: string;
@@ -77,6 +78,7 @@ export interface GermanSpecificMeta {
 
 export type LanguageSpecificMeta =
   | { type: 'mandarin'; data: MandarinSpecificMeta }
+  | { type: 'cantonese'; data: Record<string, any> }
   | { type: 'japanese'; data: JapaneseSpecificMeta }
   | { type: 'korean'; data: KoreanSpecificMeta }
   | { type: 'spanish'; data: SpanishSpecificMeta }
@@ -91,6 +93,7 @@ export interface LearningItem {
   word: string;
   meaning: string;
   secondaryMeanings?: string[];
+  definition?: string;
   partOfSpeech: string;
   category: string;
   subcategory?: string;
@@ -99,25 +102,41 @@ export interface LearningItem {
   frequencyRank: number; // 1 - 10000+
   frequencyBand: FrequencyBand;
   itemType: ItemType;
-  pronunciation: string;
-  pronunciationSystem: string;
+  pronunciation?: string;
+  pronunciationSystem?: string;
   examples: ExampleSentence[];
   languageSpecific?: LanguageSpecificMeta;
   tags?: string[];
   usageNotes?: string;
   culturalNotes?: string;
+  culturalNote?: string;
+  memoryTip?: string;
+  audioUrl?: string;
+
+  // Dynamic user progress attributes
+  isBookmarked?: boolean;
+  status?: 'new' | 'learning' | 'review' | 'mastered';
+  streak?: number;
+  reviewsCount?: number;
+  lastPracticed?: string;
+  isCustom?: boolean;
 }
 
 export interface VocabularyQuery {
   language?: string;
+  languageVariant?: string;
   category?: string;
   difficulty?: string;
   frequencyBand?: string;
   itemType?: string;
   q?: string;
+  search?: string;
   page?: number;
   limit?: number;
-  sortBy?: 'frequency' | 'difficulty' | 'alphabetical' | 'random';
+  sortBy?: 'frequency' | 'difficulty' | 'alphabetical' | 'random' | 'frequencyRank' | 'word';
+  sortDirection?: 'asc' | 'desc';
+  bookmarkedOnly?: boolean;
+  statusFilter?: string;
 }
 
 export interface VocabularyQueryResult {

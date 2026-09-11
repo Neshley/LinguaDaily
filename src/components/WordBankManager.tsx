@@ -24,6 +24,7 @@ import { LanguageMeta, VocabularyWord } from '../types';
 import { speakWord } from '../utils/speech';
 import {
   searchVocabulary,
+  fetchVocabularyCategories,
   learningItemToVocabularyWord,
   VocabularySearchParams,
 } from '../services/vocabularyApi';
@@ -97,7 +98,7 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
   const loadGlobalLibrary = useCallback(async () => {
     setLibLoading(true);
     try {
-      // Map UI language ID (e.g. 'zh' -> 'zh-cmn')
+      // Map UI language ID (e.g. 'zh' -> 'zh-cmn', 'zh-yue' -> 'zh-yue')
       const targetLang = language.id === 'zh' ? 'zh-cmn' : language.id;
       const res = await searchVocabulary({
         language: targetLang,
@@ -113,7 +114,7 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
       setLibItems(res.items || []);
       setLibTotal(res.total || 0);
       setLibTotalPages(res.totalPages || 1);
-      if (res.filters?.categories) {
+      if (res.filters?.categories && res.filters.categories.length > 0) {
         setLibCategories(res.filters.categories);
       }
     } catch (err) {
@@ -130,6 +131,17 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
     libItemType,
     libPage,
   ]);
+
+  useEffect(() => {
+    const targetLang = language.id === 'zh' ? 'zh-cmn' : language.id;
+    fetchVocabularyCategories(targetLang)
+      .then((cats) => {
+        if (cats && cats.length > 0) {
+          setLibCategories(cats);
+        }
+      })
+      .catch((err) => console.error('Failed to pre-fetch categories:', err));
+  }, [language.id]);
 
   useEffect(() => {
     if (activeTab === 'global-library') {
@@ -342,11 +354,17 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
                   className="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-hidden"
                 >
                   <option value="All Categories">All Categories</option>
-                  {CATEGORIES.filter((c) => c !== 'All Categories').map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
+                  {libCategories.length > 0
+                    ? libCategories.map((c) => (
+                        <option key={c.name} value={c.name}>
+                          {c.name} ({c.count})
+                        </option>
+                      ))
+                    : CATEGORIES.filter((c) => c !== 'All Categories').map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
                 </select>
 
                 {/* Frequency Band */}
@@ -484,6 +502,133 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
                       {item.pronunciation && (
                         <div className="text-xs font-medium text-indigo-600 dark:text-indigo-400 mt-0.5 font-mono">
                           {item.pronunciation}
+                        </div>
+                      )}
+
+                      {/* Language-Specific Metadata Chips */}
+                      {item.languageSpecific && (
+                        <div className="flex items-center gap-1.5 flex-wrap my-1.5">
+                          {item.languageSpecific.type === 'mandarin' && (
+                            <>
+                              {item.languageSpecific.data.hskLevel && (
+                                <span className="px-1.5 py-0.5 rounded bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300 text-[10px] font-semibold">
+                                  {item.languageSpecific.data.hskLevel}
+                                </span>
+                              )}
+                              {item.languageSpecific.data.tones && (
+                                <span className="px-1.5 py-0.5 rounded bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300 text-[10px]">
+                                  Tones {item.languageSpecific.data.tones.join('-')}
+                                </span>
+                              )}
+                              {item.languageSpecific.data.traditional && item.languageSpecific.data.traditional !== item.word && (
+                                <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-300">
+                                  Trad: {item.languageSpecific.data.traditional}
+                                </span>
+                              )}
+                            </>
+                          )}
+                          {item.languageSpecific.type === 'japanese' && (
+                            <>
+                              {item.languageSpecific.data.jlptLevel && (
+                                <span className="px-1.5 py-0.5 rounded bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300 text-[10px] font-semibold">
+                                  {item.languageSpecific.data.jlptLevel}
+                                </span>
+                              )}
+                              {item.languageSpecific.data.hiragana && item.languageSpecific.data.hiragana !== item.word && (
+                                <span className="px-1.5 py-0.5 rounded bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300 text-[10px]">
+                                  {item.languageSpecific.data.hiragana}
+                                </span>
+                              )}
+                              {item.languageSpecific.data.politenessLevel && (
+                                <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-300 capitalize">
+                                  {item.languageSpecific.data.politenessLevel}
+                                </span>
+                              )}
+                            </>
+                          )}
+                          {item.languageSpecific.type === 'korean' && (
+                            <>
+                              {item.languageSpecific.data.topikLevel && (
+                                <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 text-[10px] font-semibold">
+                                  {item.languageSpecific.data.topikLevel}
+                                </span>
+                              )}
+                              {item.languageSpecific.data.speechLevel && (
+                                <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 text-[10px] capitalize">
+                                  {item.languageSpecific.data.speechLevel}
+                                </span>
+                              )}
+                            </>
+                          )}
+                          {item.languageSpecific.type === 'spanish' && (
+                            <>
+                              {item.languageSpecific.data.gender && item.languageSpecific.data.gender !== 'invariable' && (
+                                <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 text-[10px] capitalize">
+                                  {item.languageSpecific.data.gender}
+                                </span>
+                              )}
+                              {item.languageSpecific.data.article && (
+                                <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-300 font-mono">
+                                  {item.languageSpecific.data.article}
+                                </span>
+                              )}
+                              {item.languageSpecific.data.verbType && (
+                                <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 text-[10px]">
+                                  -{item.languageSpecific.data.verbType}
+                                </span>
+                              )}
+                            </>
+                          )}
+                          {item.languageSpecific.type === 'french' && (
+                            <>
+                              {item.languageSpecific.data.gender && item.languageSpecific.data.gender !== 'invariable' && (
+                                <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 text-[10px] capitalize">
+                                  {item.languageSpecific.data.gender}
+                                </span>
+                              )}
+                              {item.languageSpecific.data.article && (
+                                <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-300 font-mono">
+                                  {item.languageSpecific.data.article}
+                                </span>
+                              )}
+                              {item.languageSpecific.data.liaisonHint && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 text-[10px]">
+                                  Liaison
+                                </span>
+                              )}
+                            </>
+                          )}
+                          {item.languageSpecific.type === 'german' && (
+                            <>
+                              {item.languageSpecific.data.article && (
+                                <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 text-[10px] font-bold">
+                                  {item.languageSpecific.data.article}
+                                </span>
+                              )}
+                              {item.languageSpecific.data.gender && (
+                                <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-300 capitalize">
+                                  {item.languageSpecific.data.gender}
+                                </span>
+                              )}
+                              {item.languageSpecific.data.isSeparable && (
+                                <span className="px-1.5 py-0.5 rounded bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300 text-[10px]">
+                                  Separable
+                                </span>
+                              )}
+                            </>
+                          )}
+                          {item.languageSpecific.type === 'cantonese' && (
+                            <>
+                              <span className="px-1.5 py-0.5 rounded bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300 text-[10px]">
+                                Jyutping: {item.languageSpecific.data.jyutping}
+                              </span>
+                              {item.languageSpecific.data.tones && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 text-[10px]">
+                                  Tones {item.languageSpecific.data.tones.join('-')}
+                                </span>
+                              )}
+                            </>
+                          )}
                         </div>
                       )}
                       <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 line-clamp-2">

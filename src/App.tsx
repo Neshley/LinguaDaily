@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   DailyGoalSettings,
   LanguageFamilyId,
@@ -23,6 +23,16 @@ import {
   saveVocabulary,
   getTodayDateString,
 } from './utils/storage';
+import {
+  recordPracticeReviewRemote,
+  toggleBookmarkRemote,
+  updateUserSettingsRemote,
+  addCustomWordRemote,
+  deleteCustomWordRemote,
+  syncClientWithBackend,
+  fetchRandomVocabulary,
+  learningItemToVocabularyWord,
+} from './services/vocabularyApi';
 import { findLanguageVariant, getLanguageMeta } from './data/languageFamilies';
 import { Header } from './components/Header';
 import { Navigation } from './components/Navigation';
@@ -69,6 +79,7 @@ export default function App() {
     setSettings((prev) => {
       const updated = { ...prev, ...newSettings };
       saveSettings(updated);
+      updateUserSettingsRemote(newSettings).catch(() => {});
       return updated;
     });
   };
@@ -79,11 +90,94 @@ export default function App() {
     saveVocabulary(updatedList);
   };
 
+  // 1. Initial background sync of local data to persistent SQLite database
+  useEffect(() => {
+    const hasMigrated = localStorage.getItem('linguadaily_migrated_db_v1');
+    if (!hasMigrated) {
+      const rawVocab = localStorage.getItem('linguadaily_vocabulary_v1');
+      const rawStats = localStorage.getItem('linguadaily_user_stats_v1');
+      const rawSettings = localStorage.getItem('linguadaily_settings_v1');
+      syncClientWithBackend({
+        vocabulary: rawVocab ? JSON.parse(rawVocab) : [],
+        stats: rawStats ? JSON.parse(rawStats) : null,
+        settings: rawSettings ? JSON.parse(rawSettings) : null,
+        activeLanguage,
+      })
+        .then(() => {
+          localStorage.setItem('linguadaily_migrated_db_v1', 'true');
+        })
+        .catch((err) => console.error('Migration error:', err));
+    }
+  }, []);
+
+  // 2. Automatically load items from SQLite backend when selecting a language
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadBackendLanguageItems() {
+      const targetLang = activeLanguage === 'zh' ? 'zh-cmn' : activeLanguage;
+      try {
+        const items = await fetchRandomVocabulary(targetLang, 35);
+        if (isCancelled || !items || items.length === 0) return;
+
+        setVocabulary((prev) => {
+          const existingIds = new Set(prev.map((w) => w.id));
+          const existingWords = new Set(prev.map((w) => `${w.languageId}:${w.word.toLowerCase()}`));
+          const added: VocabularyWord[] = [];
+
+          for (const item of items) {
+            const vocabWord = learningItemToVocabularyWord(item);
+            const key = `${vocabWord.languageId}:${vocabWord.word.toLowerCase()}`;
+            if (!existingIds.has(vocabWord.id) && !existingWords.has(key)) {
+              added.push(vocabWord);
+            }
+          }
+
+          if (added.length > 0) {
+            const combined = [...prev, ...added];
+            saveVocabulary(combined);
+            return combined;
+          }
+          return prev;
+        });
+      } catch (err) {
+        console.error('Failed to load language vocabulary from SQLite backend:', err);
+      }
+    }
+
+    loadBackendLanguageItems();
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeLanguage]);
+
   // Filter words for current language or fallback to all words matching the language prefix
   const languageWords = useMemo(() => {
-    return vocabulary.filter(
-      (w) => w.languageId === activeLanguage || (activeLanguage === 'zh' && w.languageId === 'zh-cmn')
-    );
+    const active = activeLanguage === 'zh' ? 'zh-cmn' : activeLanguage;
+    const filtered = vocabulary.filter((w) => {
+      const wordLang = w.languageId === 'zh' ? 'zh-cmn' : w.languageId;
+      const wordVar = (w as any).variantId || wordLang;
+
+      if (active === 'zh-cmn') {
+        return (
+          wordLang === 'zh-cmn' ||
+          wordVar === 'zh-cmn' ||
+          (w.languageId === 'zh' && wordVar !== 'zh-yue')
+        );
+      }
+      if (active === 'zh-yue') {
+        return wordLang === 'zh-yue' || wordVar === 'zh-yue';
+      }
+
+      return (
+        wordLang === active ||
+        wordVar === active ||
+        w.languageId === activeLanguage ||
+        wordLang.startsWith(activeLanguage) ||
+        activeLanguage.startsWith(wordLang)
+      );
+    });
+
+    return filtered;
   }, [vocabulary, activeLanguage]);
 
   const currentVariant = useMemo(() => {
@@ -129,6 +223,14 @@ export default function App() {
 
     updateVocabularyState(updatedWords);
 
+    // Persist practice review to SQLite backend
+    recordPracticeReviewRemote({
+      itemId: wordId,
+      languageId: activeLanguage,
+      activityType: 'flashcard',
+      rating,
+    }).catch((err) => console.error('Practice review persistence error:', err));
+
     // Update user stats
     setStats((prev) => {
       const isAlreadyPracticedToday = prev.todayPracticedWords?.includes(wordId) || false;
@@ -169,20 +271,34 @@ export default function App() {
   };
 
   const handleToggleBookmark = (wordId: string) => {
-    const updated = vocabulary.map((w) =>
-      w.id === wordId ? { ...w, isBookmarked: !w.isBookmarked } : w
-    );
+    let nextStatus = false;
+    const updated = vocabulary.map((w) => {
+      if (w.id === wordId) {
+        nextStatus = !w.isBookmarked;
+        return { ...w, isBookmarked: nextStatus };
+      }
+      return w;
+    });
     updateVocabularyState(updated);
+    toggleBookmarkRemote(wordId, nextStatus).catch((err) =>
+      console.error('Bookmark toggle persistence error:', err)
+    );
   };
 
   const handleAddCustomWord = (newWord: VocabularyWord) => {
     const updated = [newWord, ...vocabulary];
     updateVocabularyState(updated);
+    addCustomWordRemote(newWord).catch((err) =>
+      console.error('Custom word persistence error:', err)
+    );
   };
 
   const handleDeleteWord = (wordId: string) => {
     const updated = vocabulary.filter((w) => w.id !== wordId);
     updateVocabularyState(updated);
+    deleteCustomWordRemote(wordId).catch((err) =>
+      console.error('Custom word delete persistence error:', err)
+    );
   };
 
   const handleQuizComplete = (score: number, total: number) => {
@@ -333,6 +449,7 @@ export default function App() {
             settings={settings}
             onNavigate={setActiveTab}
             onToggleBookmark={handleToggleBookmark}
+            onAddWordToDeck={handleAddCustomWord}
           />
         )}
 
