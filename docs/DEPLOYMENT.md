@@ -1,18 +1,17 @@
 # Deployment Guide
 
-## Vercel setup
+## Vercel
 
-Linguadaily is designed for Vercel with a Vite frontend and serverless AI functions.
-
-Recommended settings:
+LinguaDaily is deployed as a Vite frontend plus serverless AI functions.
 
 ```text
 Framework: Vite
 Build command: npm run build
 Output directory: dist
+Node: 22.x
 ```
 
-The repository already contains `vercel.json` with the application rewrite and static data caching rules.
+`vercel.json` owns the SPA rewrite, static-data caching, immutable asset caching, service-worker cache policy, and no-store API responses.
 
 ## Environment variables
 
@@ -22,47 +21,52 @@ Required for AI:
 GEMINI_API_KEY
 ```
 
-Add it to Production. Add it to Preview if preview AI testing is required.
+Never expose this value through a `VITE_*` variable or frontend source.
 
-## Deployment sequence
-
-1. Push the project to GitHub.
-2. Import the repository into Vercel.
-3. Configure the `GEMINI_API_KEY` environment variable.
-4. Deploy.
-5. Open `/api/gemini/health` on the deployment.
-6. Open the app and test Sentence Studio.
-7. Test one language pack download.
-8. Test the app after disconnecting the network.
-
-## Production build
-
-Run locally before pushing:
+## Pre-deploy checks
 
 ```bash
-npm install
+npm ci
 npm run lint
+npm run typecheck:node
 npm run verify:content
 npm run audit:content
+npm run test:logic
 npm run build
 ```
 
+Use `npm ci` only after committing the generated `package-lock.json` in a normal development environment. The provided source archive does not include a lockfile because dependency installation is environment-dependent.
+
+## Deployment sequence
+
+1. Push the repository to GitHub.
+2. Import it into Vercel.
+3. Select Node 22.x if the project settings expose a Node runtime selector.
+4. Add `GEMINI_API_KEY` to Production and Preview when preview AI testing is desired.
+5. Deploy.
+6. Check `/api/health`.
+7. Check `/api/gemini/health` and confirm the model is `gemini-3.8-flash` and `configured: true`.
+8. Test Sentence Studio, word explanation, and custom-word generation.
+9. Download a language pack and test it offline.
+10. Test the smallest supported mobile layout and a desktop layout.
+
 ## Database note
 
-Do not design the deployed learner experience around a writable SQLite file. Vercel's serverless/static deployment should use the committed static JSON library for learner content.
-
-SQLite remains useful for local authoring and content generation.
+Do not depend on SQLite for deployed learner state. SQLite is local content-authoring infrastructure. The learner-facing application is static-content + local-state + serverless-AI.
 
 ## Release checklist
 
 - [ ] TypeScript passes
+- [ ] Node-side TypeScript passes
+- [ ] Logic tests pass
 - [ ] Content verification passes
 - [ ] Content audit passes
 - [ ] Vite build passes
-- [ ] `GEMINI_API_KEY` is configured
+- [ ] `GEMINI_API_KEY` is configured server-side
 - [ ] AI health endpoint reports configured
-- [ ] Sentence Studio works online
+- [ ] All three AI endpoints work online
 - [ ] Offline language download works
 - [ ] Offline vocabulary works
-- [ ] Mobile layout checked
-- [ ] Desktop layout checked
+- [ ] No API request is made to `/api/user/*` or `/api/practice/*` by the browser
+- [ ] Mobile layout checked at 320–390px widths
+- [ ] Tablet and desktop layouts checked

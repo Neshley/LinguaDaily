@@ -29,7 +29,7 @@ import {
   fetchVocabularyCategories,
   learningItemToVocabularyWord,
 } from '../services/vocabularyApi';
-import { LearningItem } from '../../server/types/vocabulary';
+import type { LearningItem } from '../../server/types/vocabulary';
 
 interface LearnViewProps {
   activeVariant: LanguageVariant;

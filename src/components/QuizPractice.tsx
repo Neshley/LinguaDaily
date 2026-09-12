@@ -176,7 +176,7 @@ export const QuizPractice: React.FC<QuizPracticeProps> = ({
   }
 
   if (quizFinished) {
-    const accuracy = Math.round((score / questions.length) * 100);
+    const accuracy = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
     return (
       <div className="max-w-lg mx-auto py-10 px-4 text-center">
         <div className="w-16 h-16 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto mb-4">

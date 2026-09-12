@@ -23,7 +23,7 @@ Linguadaily is a responsive language-learning web application built around pract
 - Tailwind CSS 4
 - Motion
 - Lucide React
-- Google Gemini via `@google/genai`
+- Google Gemini via server-side REST requests
 - Vercel serverless functions for AI
 - SQLite for local content generation/authoring workflows
 - Static JSON for production learner content
@@ -56,7 +56,7 @@ Linguadaily is a responsive language-learning web application built around pract
 
 ## Requirements
 
-- Node.js 20+ recommended
+- Node.js 22.x
 - npm
 - A Google Gemini API key for AI features
 
@@ -80,7 +80,7 @@ Then start the application:
 npm run dev
 ```
 
-The local development command uses `server.ts` to provide the development experience. The production learner library is still read from the static JSON files under `public/data/languages/`.
+The local development command uses `server.ts` to provide the development experience. The local server binds to `127.0.0.1`; its SQLite-backed endpoints are authoring/development infrastructure and are not used by the production learner UI. The production learner library is read from static JSON files under `public/data/languages/`.
 
 ## Validate before deployment
 
@@ -91,15 +91,12 @@ npm run verify:content
 npm run audit:content
 ```
 
-Run TypeScript validation:
+Run browser TypeScript validation, Node-side validation, logic checks, and the production build:
 
 ```bash
 npm run lint
-```
-
-Run the production build:
-
-```bash
+npm run typecheck:node
+npm run test:logic
 npm run build
 ```
 
@@ -187,7 +184,7 @@ See [`docs/SECURITY.md`](docs/SECURITY.md).
 ## Current limitations
 
 - AI features require network access and a configured Gemini API key.
-- Learner persistence is primarily client-side; a durable multi-device database layer is a future production step.
+- Learner persistence is intentionally client-side for this release; a durable authenticated multi-device database layer can be added later without changing the static content pipeline.
 - The static language library must be regenerated/exported and committed when production content changes.
 - AI-generated learning content must be reviewed before promotion to the curated library.
 

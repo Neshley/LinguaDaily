@@ -33,3 +33,20 @@ Learner state stored in local storage should be treated as user-controlled data.
 ## Dependency hygiene
 
 Keep dependencies current and run package audits as part of normal maintenance. Do not install packages solely to work around an architecture problem when a small first-party implementation is sufficient.
+
+## AI abuse controls
+
+The Gemini endpoints enforce:
+
+- bounded JSON request sizes
+- per-instance request rate limiting
+- field-specific length limits
+- strict response-shape checks before model output reaches the UI
+- no-store caching headers on API responses
+- provider/API-key errors that do not expose the secret
+
+The in-memory rate limiter is intentionally a best-effort control for serverless instances. If the application becomes high-traffic, move rate limiting to a shared provider such as Vercel KV/Redis or another centralized edge store.
+
+## Local development boundary
+
+`server.ts` binds to `127.0.0.1`, not `0.0.0.0`, because its SQLite-backed routes are local development/authoring infrastructure. Do not expose that server directly to the public internet without authentication and a real persistence/security model.

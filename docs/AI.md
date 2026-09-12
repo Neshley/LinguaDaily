@@ -28,10 +28,10 @@ Never place this value in React code, `public/`, or a committed `.env` file.
 The server-side AI routes use:
 
 ```text
- gemini-3.8-flash
+gemini-3.8-flash
 ```
 
-The implementation uses Google's supported server-side Gemini SDK/REST-compatible flow and requests structured JSON where the endpoint needs structured output.
+The implementation uses Google's Gemini REST `generateContent` endpoint with server-side API-key authentication and structured JSON output. The model's supported `thinkingLevel` is set to `low` for short learner interactions.
 
 ## Request flow
 

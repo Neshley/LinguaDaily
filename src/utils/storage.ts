@@ -110,13 +110,13 @@ export function saveActiveLanguage(lang: SupportedLanguageId): void {
 
 export function loadUserStats(): UserStats {
   const today = getTodayDateString();
-  const defaultHistory = { [today]: 3 };
+  const defaultHistory = { [today]: 0 };
   const defaultStats: UserStats = {
     streakDays: 1,
     lastActiveDate: today,
-    totalWordsPracticed: 3,
-    xp: 60,
-    totalXp: 60,
+    totalWordsPracticed: 0,
+    xp: 0,
+    totalXp: 0,
     todayPracticedIds: [],
     todayPracticedWords: [],
     historyByDate: defaultHistory,

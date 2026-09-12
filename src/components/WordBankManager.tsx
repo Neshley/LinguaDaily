@@ -29,7 +29,7 @@ import {
   learningItemToVocabularyWord,
   VocabularySearchParams,
 } from '../services/vocabularyApi';
-import { LearningItem } from '../../server/types/vocabulary';
+import type { LearningItem } from '../../server/types/vocabulary';
 
 interface WordBankManagerProps {
   words: VocabularyWord[];

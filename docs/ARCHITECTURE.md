@@ -1,49 +1,65 @@
 # Architecture
 
-## Product model
+## Runtime model
 
-Linguadaily is organized around learner intent instead of a fixed course path. The application combines discovery, practice, review, vocabulary management, and optional AI assistance around a shared language/content layer.
-
-## Runtime architecture
+LinguaDaily has a deliberate production boundary:
 
 ```text
-                         ┌──────────────────────────────┐
-                         │           Browser            │
-                         │ React + TypeScript + Vite    │
-                         └──────────────┬───────────────┘
+                         ┌─────────────────────────────┐
+                         │           Browser           │
+                         │ React + TypeScript + Vite   │
+                         └──────────────┬──────────────┘
                                         │
-             ┌──────────────────────────┼─────────────────────────┐
-             │                          │                         │
-             ▼                          ▼                         ▼
-   Static language data          Local learning state       AI client service
-   public/data/languages/         localStorage/cache         src/services/aiApi.ts
-             │                          │                         │
-             │                          │                         ▼
-             │                          │                 /api/gemini/*
-             │                          │                         │
-             │                          │                         ▼
-             │                          │                  Google Gemini
-             │                          │
-             └──────────────────────────┴─────────────────────────
-                         Offline Cache Storage
+          ┌─────────────────────────────┼──────────────────────────┐
+          │                             │                          │
+          ▼                             ▼                          ▼
+  Static language JSON          Local learner state           AI client
+  /data/languages/*.json        localStorage + Cache          /api/gemini/*
+          │                             │                          │
+          │                             │                          ▼
+          │                             │                    Gemini API
+          └──────────────┬──────────────┴──────────────────────────┘
+                         ▼
+                  Service Worker / PWA
 ```
 
-## Production content
+## Production source of truth
 
-Production learning content is static JSON. This avoids depending on a writable database at runtime and makes the content deterministic, cacheable, and deployable through Vercel's CDN.
+- **Learning content:** committed static JSON under `public/data/languages/`.
+- **Learner progress/settings:** local browser storage. No anonymous remote persistence is implied.
+- **AI:** server-side Vercel functions only.
+- **SQLite:** local authoring/content-generation infrastructure only. It is not a production learner database.
 
-## Local authoring data
+## Local development
 
-SQLite is used for local generation, seed management, duplicate protection, and content workflows. It is not the source of truth required by the deployed learner application.
+`server.ts` provides the local development server, SQLite-backed authoring endpoints, and adapters to the same Gemini handlers used by Vercel. It binds to `127.0.0.1` rather than exposing the local database/API to the LAN.
+
+The public learner UI does not call the local SQLite endpoints.
 
 ## AI boundary
 
-The browser never receives the Gemini API key. Frontend components call `src/services/aiApi.ts`, which sends requests to the serverless endpoints under `api/gemini/`. Those functions read `GEMINI_API_KEY` from the server environment and call Gemini.
+The browser calls `src/services/aiApi.ts` → `/api/gemini/*`. The Gemini API key is read only on the server. AI inputs are bounded and rate-limited, and model responses are schema-checked before being returned to the browser.
+
+The project uses the stable `gemini-3.8-flash` model. Gemini 3.8 Flash supports low/medium/high thinking levels; the app uses low for short learner interactions.
 
 ## Offline boundary
 
-Offline packs are explicit downloads. `src/utils/offlinePacks.ts` stores language JSON in a dedicated Cache Storage cache and stores pack metadata locally. `vocabularyApi.ts` checks this cache before performing a normal network request.
+Offline language packs are explicitly downloaded into a dedicated Cache Storage cache. The service worker does not intercept `/api/*` requests and does not return the HTML shell for failed JSON/data requests.
 
-## Deployment boundary
+Navigation has an app-shell fallback; static assets use cache-first behavior; language data uses the explicit offline-pack cache and otherwise goes to the network.
 
-Vercel serves the compiled frontend and static content. `/api/*` is handled by serverless functions. SQLite files are excluded from deployment through `.vercelignore` because they are not required for runtime learning.
+## Content pipeline
+
+```text
+SQLite / seed data
+       ↓
+content generation
+       ↓
+dedupe + purge + verification + quality audit
+       ↓
+public/data/*.json
+       ↓
+Vercel CDN
+```
+
+Content generation/reseeding is a CLI/build concern, not a public HTTP mutation.

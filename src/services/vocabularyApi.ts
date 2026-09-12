@@ -1,5 +1,5 @@
-import { LearningItem, VocabularyQueryResult, ContentAuditReport, ContentQualityTier } from '../../server/types/vocabulary';
-import { DailyGoalSettings, SupportedLanguageId, UserStats, VocabularyWord } from '../types';
+import type { LearningItem, VocabularyQueryResult, ContentAuditReport, ContentQualityTier } from '../../server/types/vocabulary';
+import { SupportedLanguageId, VocabularyWord } from '../types';
 
 /**
  * Vercel-safe content client.
@@ -160,61 +160,9 @@ export async function fetchVocabularyRecommendations(language: string, currentBa
   return [...pool].sort((a, b) => a.frequencyRank - b.frequencyRank).slice(0, limit);
 }
 
-// Review/progress writes remain best-effort. The app already keeps learner state locally,
-// while these calls can be backed by Supabase later without changing the UI API.
-// Review scheduling is owned by the client-side learner state. The backend route
-// is intentionally not required for the core review experience.
-export async function fetchDueReviews(_language: string, _limit = 20): Promise<LearningItem[]> {
-  return [];
-}
-
-export async function recordPracticeReviewRemote(payload: any): Promise<any> {
-  try {
-    const res = await fetch('/api/practice/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    if (res.ok) return res.json();
-  } catch {}
-  return { success: true, xpEarned: payload?.activityType === 'pronunciation' ? 15 : 10 };
-}
-
-export async function toggleBookmarkRemote(itemId: string, bookmarked: boolean): Promise<any> {
-  try {
-    const res = await fetch('/api/user/bookmarks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ itemId, bookmarked }) });
-    if (res.ok) return res.json();
-  } catch {}
-  return { success: true, itemId, isBookmarked: bookmarked };
-}
-
-export async function updateUserSettingsRemote(settings: Partial<DailyGoalSettings>): Promise<any> {
-  try {
-    const res = await fetch('/api/user/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
-    if (res.ok) return res.json();
-  } catch {}
-  return { success: true, settings };
-}
-
-export async function addCustomWordRemote(word: VocabularyWord): Promise<any> {
-  try {
-    const res = await fetch('/api/user/custom-items', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(word) });
-    if (res.ok) return res.json();
-  } catch {}
-  return { success: true, item: word };
-}
-
-export async function deleteCustomWordRemote(id: string): Promise<any> {
-  try {
-    const res = await fetch(`/api/user/custom-items/${encodeURIComponent(id)}`, { method: 'DELETE' });
-    if (res.ok) return res.json();
-  } catch {}
-  return { success: true, id };
-}
-
-export async function syncClientWithBackend(payload: { vocabulary?: VocabularyWord[]; stats?: UserStats | null; settings?: DailyGoalSettings | null; activeLanguage?: string }): Promise<any> {
-  try {
-    const res = await fetch('/api/user/migrate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    if (res.ok) return res.json();
-  } catch {}
-  return { success: true, localOnly: true };
-}
+// Learner progress is intentionally local-first until an authenticated hosted
+// persistence service is introduced. Do not silently call nonexistent backend
+// routes from the browser.
 
 export async function fetchVocabularyStats(): Promise<{ totalCount: number; reports: ContentAuditReport[] }> {
   const res = await fetch('/data/manifest.json', { cache: 'force-cache' });
@@ -236,7 +184,7 @@ export function learningItemToVocabularyWord(item: LearningItem, existingWord?: 
     variantId: (item.languageVariant as SupportedLanguageId) || effectiveLang,
     word: item.word,
     traditionalWord: (item.languageSpecific as any)?.traditional || (item.languageSpecific as any)?.data?.traditional || undefined,
-    phonetic: item.pronunciation,
+    phonetic: item.pronunciation || '',
     meaning: item.meaning,
     partOfSpeech: item.itemType === 'collocation' ? 'Expression' : item.itemType === 'phrase' ? 'Phrase' : item.itemType === 'question' || item.itemType === 'response' ? 'Expression' : (item.partOfSpeech as any) || 'Expression',
     category: (item.category as any) || 'Daily Essentials',
