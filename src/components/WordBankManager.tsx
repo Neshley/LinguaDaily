@@ -74,6 +74,7 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
   // Add Word Form state
   const [inputWordOrEnglish, setInputWordOrEnglish] = useState<string>('');
   const [isAiGenerating, setIsAiGenerating] = useState<boolean>(false);
+  const [aiGenerationError, setAiGenerationError] = useState<string>('');
   const [newWordData, setNewWordData] = useState<Partial<VocabularyWord>>({
     word: '',
     phonetic: '',
@@ -188,8 +189,17 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
     if (!inputWordOrEnglish.trim()) return;
 
     setIsAiGenerating(true);
+    setAiGenerationError('');
     try {
-      const data = await aiApi.generateCustomWord({ input: inputWordOrEnglish.trim(), targetLanguage: language.name });
+      const isMandarin = language.id === 'zh-cmn' || language.id === 'zh';
+      const isCantonese = language.id === 'zh-yue';
+      const data = await aiApi.generateCustomWord({
+        input: inputWordOrEnglish.trim(),
+        targetLanguage: language.id,
+        variety: isMandarin ? 'Mandarin Chinese' : isCantonese ? 'Cantonese' : language.name,
+        writingSystem: isCantonese ? 'Traditional Hanzi / Written Cantonese' : language.scriptName,
+        pronunciationSystem: isMandarin ? 'Hanyu Pinyin' : isCantonese ? 'Jyutping' : 'standard',
+      });
       if (data.success && data.card) {
         const c = data.card;
         setNewWordData({
@@ -206,9 +216,13 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
           },
           memoryTip: c.memoryTip || '',
         });
+      } else {
+        setAiGenerationError('The AI returned an incomplete vocabulary card. Please try again.');
       }
     } catch (err) {
       console.error('Failed to auto-generate word:', err);
+      const message = err instanceof Error ? err.message : 'AI generation failed. Please try again.';
+      setAiGenerationError(message);
     } finally {
       setIsAiGenerating(false);
     }
@@ -898,6 +912,15 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
                   <span>Auto-Fill</span>
                 </button>
               </div>
+              {aiGenerationError && (
+                <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+                  <div className="font-semibold">AI generation failed</div>
+                  <div className="mt-0.5 break-words">{aiGenerationError}</div>
+                  {aiGenerationError.toLowerCase().includes('api key') && (
+                    <div className="mt-1 text-[11px] opacity-80">Add GEMINI_API_KEY to your Vercel project environment variables, then redeploy.</div>
+                  )}
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleSaveNewWord} className="space-y-3">

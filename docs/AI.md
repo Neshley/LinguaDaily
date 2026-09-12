@@ -90,3 +90,8 @@ Retry later and inspect Vercel/Gemini usage limits. The frontend should not expo
 Cantonese must use authentic Cantonese wording and Jyutping. Do not substitute Mandarin pinyin for Cantonese. Do not attach Mandarin HSK metadata to Cantonese items.
 
 AI-generated language content should be treated as untrusted until reviewed. Generation is not permission to publish directly to the curated production library.
+
+
+## Vercel environment variable
+
+The Gemini API key must be configured server-side in Vercel as `GEMINI_API_KEY`. Do not place the real key in `src/`, `public/`, `.env.example`, or any committed source file. After adding or changing the variable, redeploy the project so the Vercel Functions receive the new value.

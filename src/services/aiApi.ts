@@ -28,7 +28,7 @@ async function postAi(path: string, body: unknown) {
         : 'The AI service returned an error.';
     const error: AiError = new Error(data.error || fallback);
     error.isApiKeyMissing = Boolean(data.isApiKeyMissing);
-    error.code = response.status === 429 ? 'RATE_LIMIT' : response.status === 401 || response.status === 403 ? 'AUTH' : 'AI_ERROR';
+    error.code = response.status === 429 ? 'RATE_LIMIT' : response.status === 401 || response.status === 403 ? 'AUTH' : data.code || 'AI_ERROR';
     throw error;
   }
   return data;
