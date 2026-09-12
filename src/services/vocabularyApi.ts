@@ -25,6 +25,16 @@ async function loadLanguage(language: string): Promise<{ language: any; items: L
       .then(async (res) => {
         if (!res.ok) throw new Error(`Content library ${id} could not be loaded (${res.status})`);
         return res.json();
+      })
+      .catch(async (error) => {
+        // Explicit offline packs live in a dedicated Cache Storage bucket.
+        // This fallback also makes the content layer resilient if the normal
+        // service-worker fetch path is unavailable.
+        if ('caches' in window) {
+          const offline = await caches.match(`/data/languages/${encodeURIComponent(id)}.json`);
+          if (offline) return offline.json();
+        }
+        throw error;
       });
     cache.set(id, pending);
   }

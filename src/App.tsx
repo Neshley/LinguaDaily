@@ -45,6 +45,7 @@ import { ProgressView } from './views/ProgressView';
 import { WordBankManager } from './components/WordBankManager';
 import { SettingsModal } from './components/SettingsModal';
 import { LanguageVariantModal } from './components/LanguageVariantModal';
+import { PWAStatus } from './components/PWAStatus';
 
 export default function App() {
   const [activeLanguage, setActiveLanguage] = useState<SupportedLanguageId>(loadActiveLanguage);
@@ -410,6 +411,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-indigo-100 selection:text-indigo-900">
+      {/* Offline / install status */}
+      <PWAStatus />
+
       {/* Global Header */}
       <Header
         activeLanguage={activeLanguage}

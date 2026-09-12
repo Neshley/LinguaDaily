@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Sliders, Volume2, Target, RotateCcw } from 'lucide-react';
+import { OfflineLearningPanel } from './OfflineLearningPanel';
 import { DailyGoalSettings } from '../types';
 
 interface SettingsModalProps {
@@ -21,7 +22,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 border border-slate-200 shadow-xl space-y-5">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 border border-slate-200 shadow-xl space-y-5">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
             <Sliders className="w-5 h-5 text-slate-800" />
@@ -122,6 +123,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
             />
           </label>
+        </div>
+
+        {/* Offline learning */}
+        <div className="border-t border-slate-100 pt-4">
+          <OfflineLearningPanel embedded />
         </div>
 
         {/* Danger zone / reset */}
