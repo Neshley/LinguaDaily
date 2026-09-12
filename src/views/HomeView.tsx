@@ -46,10 +46,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const goalTarget = settings.targetWordsPerDay || 10;
   const goalPercentage = Math.min(100, Math.round((todayPracticedCount / goalTarget) * 100));
 
+  const now = Date.now();
   const dueForReview = words.filter((w) => {
-    if (w.status === 'mastered') return false;
-    if (w.status === 'learning' || w.status === 'review') return true;
-    return false;
+    if (w.status !== 'learning' && w.status !== 'review') return false;
+    return !w.nextReviewDate || new Date(w.nextReviewDate).getTime() <= now;
   });
 
   const recentWords = [...words]

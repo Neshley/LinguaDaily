@@ -197,20 +197,32 @@ export default function App() {
 
       let newStatus = word.status;
       let newStreak = word.streak;
+      // Keep the review schedule locally so SRS works even without the backend.
+      // Intervals are intentionally simple and transparent rather than pretending
+      // to be a full SM-2 implementation.
+      let intervalDays = 1;
 
       if (rating === 'again') {
         newStatus = 'learning';
         newStreak = 0;
+        intervalDays = 0;
       } else if (rating === 'hard') {
         newStatus = 'learning';
         newStreak += 1;
+        intervalDays = 1;
       } else if (rating === 'good') {
         newStreak += 1;
         newStatus = newStreak >= 3 ? 'mastered' : 'review';
+        intervalDays = newStreak >= 3 ? 7 : 3;
       } else if (rating === 'easy') {
         newStreak += 2;
         newStatus = 'mastered';
+        intervalDays = 7;
       }
+
+      const nextReview = new Date();
+      nextReview.setDate(nextReview.getDate() + intervalDays);
+      if (intervalDays === 0) nextReview.setMinutes(nextReview.getMinutes() + 10);
 
       return {
         ...word,
@@ -218,6 +230,7 @@ export default function App() {
         streak: newStreak,
         reviewsCount: (word.reviewsCount || 0) + 1,
         lastPracticed: today,
+        nextReviewDate: nextReview.toISOString(),
       };
     });
 
@@ -404,8 +417,10 @@ export default function App() {
   };
 
   // Due for review count
+  const now = Date.now();
   const dueReviewsCount = languageWords.filter(
-    (w) => w.status === 'learning' || w.status === 'review'
+    (w) => (w.status === 'learning' || w.status === 'review') &&
+      (!w.nextReviewDate || new Date(w.nextReviewDate).getTime() <= now)
   ).length;
 
   return (

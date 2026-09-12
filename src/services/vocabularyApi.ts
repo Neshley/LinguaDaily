@@ -162,7 +162,11 @@ export async function fetchVocabularyRecommendations(language: string, currentBa
 
 // Review/progress writes remain best-effort. The app already keeps learner state locally,
 // while these calls can be backed by Supabase later without changing the UI API.
-export async function fetchDueReviews(_language: string, _limit = 20): Promise<LearningItem[]> { return []; }
+// Review scheduling is owned by the client-side learner state. The backend route
+// is intentionally not required for the core review experience.
+export async function fetchDueReviews(_language: string, _limit = 20): Promise<LearningItem[]> {
+  return [];
+}
 
 export async function recordPracticeReviewRemote(payload: any): Promise<any> {
   try {

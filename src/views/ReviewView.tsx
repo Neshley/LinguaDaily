@@ -45,8 +45,13 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
   const reviewWords = words.filter((w) => w.status === 'review');
   const masteredWords = words.filter((w) => w.status === 'mastered');
 
-  // Words due for active review session: learning + review + new (prioritize review & learning)
-  const dueQueue = [...reviewWords, ...learningWords, ...newWords.slice(0, 5)];
+  // Only include learning/review cards whose scheduled review time has arrived.
+  // New cards are introduced in small batches.
+  const now = Date.now();
+  const scheduledDue = [...reviewWords, ...learningWords].filter((w) =>
+    !w.nextReviewDate || new Date(w.nextReviewDate).getTime() <= now
+  );
+  const dueQueue = [...scheduledDue, ...newWords.slice(0, 5)];
 
   if (isSessionActive) {
     return (
@@ -80,7 +85,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
             SRS Review Center
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Scientifically timed reviews that reinforce vocabulary right before memory decay occurs.
+            Scheduled reviews that bring vocabulary back at practical intervals based on your recall rating.
           </p>
         </div>
 
@@ -175,14 +180,14 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
           </div>
 
           <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40">
-            <div className="font-bold text-blue-700 dark:text-blue-300 mb-1">Good (3-5 days)</div>
+            <div className="font-bold text-blue-700 dark:text-blue-300 mb-1">Good (3 days)</div>
             <p className="text-slate-600 dark:text-slate-300">
               Comfortable recall. Extends the interval safely into long-term retention.
             </p>
           </div>
 
           <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40">
-            <div className="font-bold text-emerald-700 dark:text-emerald-300 mb-1">Easy (7+ days)</div>
+            <div className="font-bold text-emerald-700 dark:text-emerald-300 mb-1">Easy (7 days)</div>
             <p className="text-slate-600 dark:text-slate-300">
               Effortless recall. Progresses word rapidly toward "mastered" status.
             </p>
