@@ -21,21 +21,20 @@ async function loadLanguage(language: string): Promise<{ language: any; items: L
   const id = contentLanguageId(language) || 'zh';
   let pending = cache.get(id);
   if (!pending) {
-    pending = fetch(`/data/languages/${encodeURIComponent(id)}.json`, { cache: 'force-cache' })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`Content library ${id} could not be loaded (${res.status})`);
-        return res.json();
-      })
-      .catch(async (error) => {
-        // Explicit offline packs live in a dedicated Cache Storage bucket.
-        // This fallback also makes the content layer resilient if the normal
-        // service-worker fetch path is unavailable.
-        if ('caches' in window) {
-          const offline = await caches.match(`/data/languages/${encodeURIComponent(id)}.json`);
-          if (offline) return offline.json();
-        }
-        throw error;
-      });
+    const url = `/data/languages/${encodeURIComponent(id)}.json`;
+    pending = (async () => {
+      // Explicit offline packs are the first local source. This remains useful
+      // even if the service worker is updating or the browser is fully offline.
+      try {
+        const offlineCache = await caches.open('linguadaily-offline-language-packs-v2');
+        const offlineResponse = await offlineCache.match(url);
+        if (offlineResponse) return offlineResponse.json();
+      } catch {}
+
+      const res = await fetch(url, { cache: 'force-cache' });
+      if (!res.ok) throw new Error(`Content library ${id} could not be loaded (${res.status})`);
+      return res.json();
+    })();
     cache.set(id, pending);
   }
   return pending;

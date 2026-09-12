@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { aiApi } from '../services/aiApi';
 import {
   Search,
   Plus,
@@ -184,15 +185,7 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
 
     setIsAiGenerating(true);
     try {
-      const res = await fetch('/api/gemini/generate-custom-word', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          input: inputWordOrEnglish.trim(),
-          targetLanguage: language.name,
-        }),
-      });
-      const data = await res.json();
+      const data = await aiApi.generateCustomWord({ input: inputWordOrEnglish.trim(), targetLanguage: language.name });
       if (data.success && data.card) {
         const c = data.card;
         setNewWordData({

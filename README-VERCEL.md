@@ -43,3 +43,7 @@ Commit the updated `public/data/` files and redeploy.
 The content library is global/static. Learner progress, bookmarks, settings and custom words should remain client-side until the Supabase/Postgres persistence layer is connected. The current UI keeps those actions best-effort so Vercel deployment does not break when a serverless write endpoint is unavailable.
 
 The next production persistence step is to replace those write fallbacks with Supabase/Postgres while keeping the static content architecture.
+
+## AI on Vercel
+
+AI features are deployed as Vercel serverless functions under `/api/gemini/*`. Add `GEMINI_API_KEY` to the Vercel project Environment Variables for Production (and Preview if desired). The key is server-side only. See `AI-PRODUCTION-SETUP.md`.

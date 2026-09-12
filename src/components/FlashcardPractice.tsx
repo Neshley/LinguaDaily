@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { aiApi } from '../services/aiApi';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Volume2,
@@ -93,17 +94,12 @@ export const FlashcardPractice: React.FC<FlashcardPracticeProps> = ({
 
     setIsAiLoading(true);
     try {
-      const res = await fetch('/api/gemini/explain-word', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          word: currentWord.word,
-          language: language.name,
-          romanization: currentWord.phonetic,
-          meaning: currentWord.meaning,
-        }),
+      const json = await aiApi.explainWord({
+        word: currentWord.word,
+        language: language.name,
+        romanization: currentWord.phonetic,
+        meaning: currentWord.meaning,
       });
-      const json = await res.json();
       if (json.success && json.data) {
         setAiExplanation(json.data);
       }

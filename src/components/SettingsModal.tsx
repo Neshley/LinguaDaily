@@ -22,7 +22,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 border border-slate-200 shadow-xl space-y-5">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-4 sm:p-6 border border-slate-200 shadow-xl space-y-5">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
             <Sliders className="w-5 h-5 text-slate-800" />
@@ -125,10 +125,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </label>
         </div>
 
-        {/* Offline learning */}
-        <div className="border-t border-slate-100 pt-4">
-          <OfflineLearningPanel embedded />
-        </div>
+        <OfflineLearningPanel />
 
         {/* Danger zone / reset */}
         <div className="border-t border-slate-100 pt-3 flex justify-between items-center">
