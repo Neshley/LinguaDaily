@@ -20,6 +20,7 @@ import {
   VocabularyWord,
 } from '../types';
 import { playNativeSpeech } from '../utils/speech';
+import { ProfessionalWorkstation } from '../components/ProfessionalWorkstation';
 
 interface HomeViewProps {
   activeVariant: LanguageVariant;
@@ -65,6 +66,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <ProfessionalWorkstation stats={stats} dueCount={dueForReview.length} todayCount={todayPracticedCount} goal={goalTarget} onNavigate={onNavigate} />
       {/* 1. Header Banner & Current Language Context */}
       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 rounded-2xl p-4.5 sm:p-6 lg:p-8 text-white shadow-md relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
