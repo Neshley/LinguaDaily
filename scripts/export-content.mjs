@@ -38,6 +38,7 @@ const normalize = (row) => {
     culturalNote: row.cultural_note || undefined,
     tags: parse(row.tags, []),
     isCurated: Boolean(row.is_curated),
+    contentQuality: row.is_curated ? { tier: 'seed-curated', status: 'seed-review-required', score: 80, trustedForCoreLearning: true, source: 'Linguadaily seed dataset' } : { tier: 'generated-pattern', status: 'needs-review', score: 35, trustedForCoreLearning: false, source: 'Linguadaily template generator' },
     examples: [],
   };
 };

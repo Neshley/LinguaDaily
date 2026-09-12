@@ -212,6 +212,7 @@ CREATE TABLE IF NOT EXISTS learning_items (
   cultural_note TEXT,
   audio_url TEXT,
   tags TEXT,
+  content_identity TEXT,
   is_curated INTEGER DEFAULT 1,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

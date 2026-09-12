@@ -121,7 +121,15 @@ export function generateLanguageLibrary(
       ex,
       spec: enrichedSpec,
     };
-    items.push(buildLearningItem(langId, langVariant, id, entry));
+    const built = buildLearningItem(langId, langVariant, id, entry);
+    built.contentQuality = {
+      tier: 'seed-curated',
+      status: 'seed-review-required',
+      score: 80,
+      trustedForCoreLearning: true,
+      source: 'Linguadaily seed dataset',
+    };
+    items.push(built);
   };
 
   // 1. Add Verbs as standalone items
@@ -334,6 +342,16 @@ export function generateLanguageLibrary(
         ex,
         spec
       );
+      const generated = items[items.length - 1];
+      if (generated) {
+        generated.contentQuality = {
+          tier: 'generated-pattern',
+          status: 'needs-review',
+          score: 35,
+          trustedForCoreLearning: false,
+          source: 'Linguadaily template generator',
+        };
+      }
     }
     if (items.length >= targetCount) break;
   }

@@ -121,6 +121,17 @@ export interface LearningItem {
   reviewsCount?: number;
   lastPracticed?: string;
   isCustom?: boolean;
+  isCurated?: boolean;
+}
+
+export type ContentQualityTier = 'seed-curated' | 'generated-pattern';
+
+export interface ContentQuality {
+  tier: ContentQualityTier;
+  status: 'seed-review-required' | 'needs-review';
+  score: number;
+  trustedForCoreLearning: boolean;
+  source: string;
 }
 
 export interface VocabularyQuery {

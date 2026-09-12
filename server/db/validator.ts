@@ -18,7 +18,8 @@ export function generateIdentityKey(item: Partial<LearningItem>): string {
   const word = normalizeString(item.word || '');
   const pron = normalizeString(item.pronunciation || '');
   const meaning = normalizeString(item.meaning || '');
-  return `${lang}::${word}::${pron}::${meaning}`;
+  const type = normalizeString(item.itemType || 'word');
+  return `${lang}::${type}::${word}::${pron}::${meaning}`;
 }
 
 export function validateLearningItem(item: LearningItem): ValidationResult {

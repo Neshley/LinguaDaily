@@ -112,27 +112,15 @@ export class VocabularyRepository {
         translation, definition, pronunciation, romanization, pronunciation_system,
         part_of_speech, category, subcategory, difficulty, difficulty_score,
         frequency_rank, frequency_band, language_specific, memory_tip, cultural_note,
-        audio_url, tags, is_curated
+        audio_url, tags, content_identity, is_curated
       ) VALUES (
         ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
-        ?, ?, 1
+        ?, ?, ?, ?
       )
-      ON CONFLICT(id) DO UPDATE SET
-        native_text = excluded.native_text,
-        display_text = excluded.display_text,
-        translation = excluded.translation,
-        pronunciation = excluded.pronunciation,
-        romanization = excluded.romanization,
-        part_of_speech = excluded.part_of_speech,
-        category = excluded.category,
-        difficulty = excluded.difficulty,
-        difficulty_score = excluded.difficulty_score,
-        frequency_rank = excluded.frequency_rank,
-        frequency_band = excluded.frequency_band,
-        language_specific = excluded.language_specific
+      ON CONFLICT(content_identity) DO NOTHING
     `);
 
     stmt.run(
@@ -194,27 +182,15 @@ export class VocabularyRepository {
         translation, definition, pronunciation, romanization, pronunciation_system,
         part_of_speech, category, subcategory, difficulty, difficulty_score,
         frequency_rank, frequency_band, language_specific, memory_tip, cultural_note,
-        audio_url, tags, is_curated
+        audio_url, tags, content_identity, is_curated
       ) VALUES (
         ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
-        ?, ?, 1
+        ?, ?, ?, ?
       )
-      ON CONFLICT(id) DO UPDATE SET
-        native_text = excluded.native_text,
-        display_text = excluded.display_text,
-        translation = excluded.translation,
-        pronunciation = excluded.pronunciation,
-        romanization = excluded.romanization,
-        part_of_speech = excluded.part_of_speech,
-        category = excluded.category,
-        difficulty = excluded.difficulty,
-        difficulty_score = excluded.difficulty_score,
-        frequency_rank = excluded.frequency_rank,
-        frequency_band = excluded.frequency_band,
-        language_specific = excluded.language_specific
+      ON CONFLICT(content_identity) DO NOTHING
     `);
 
     const exStmt = this.db.prepare(`
@@ -227,8 +203,21 @@ export class VocabularyRepository {
     try {
       for (const item of items) {
         try {
+          const identity = generateIdentityKey(item);
+          const stableId = item.id || `ld-${Buffer.from(identity).toString('hex').slice(0, 20)}`;
+          const existingByIdentity: any = this.db.prepare('SELECT id FROM learning_items WHERE content_identity = ?').get(identity);
+          if (existingByIdentity) {
+            rejected++;
+            continue;
+          }
+
+          const existingById: any = this.db.prepare('SELECT content_identity FROM learning_items WHERE id = ?').get(stableId);
+          const finalId = existingById && existingById.content_identity !== identity
+            ? `ld-${Buffer.from(identity).toString('hex').slice(0, 24)}`
+            : stableId;
+
           itemStmt.run(
-            item.id,
+            finalId,
             item.languageId,
             item.languageVariant || item.languageId,
             item.itemType || 'word',
@@ -250,14 +239,16 @@ export class VocabularyRepository {
             item.memoryTip || null,
             item.culturalNote || null,
             item.audioUrl || null,
-            item.tags ? JSON.stringify(item.tags) : JSON.stringify([])
+            item.tags ? JSON.stringify(item.tags) : JSON.stringify([]),
+            identity,
+            item.contentQuality?.trustedForCoreLearning === false ? 0 : 1
           );
 
           if (item.examples && item.examples.length > 0) {
             item.examples.forEach((ex, idx) => {
               exStmt.run(
-                `${item.id}-ex-${idx + 1}`,
-                item.id,
+                `${finalId}-ex-${idx + 1}`,
+                finalId,
                 ex.native,
                 ex.pronunciation || null,
                 ex.translation
@@ -265,6 +256,7 @@ export class VocabularyRepository {
             });
           }
 
+          item.id = finalId;
           accepted++;
         } catch {
           rejected++;
@@ -1216,6 +1208,10 @@ export class VocabularyRepository {
       examples,
       languageSpecific,
       tags,
+      isCurated: Boolean(row.is_curated),
+      contentQuality: row.is_curated
+        ? { tier: 'seed-curated', status: 'seed-review-required', score: 80, trustedForCoreLearning: true, source: 'Linguadaily seed dataset' }
+        : { tier: 'generated-pattern', status: 'needs-review', score: 35, trustedForCoreLearning: false, source: 'Linguadaily template generator' },
       isBookmarked: Boolean(row.is_bookmarked),
       status: row.user_status || 'new',
       streak: row.user_streak || 0,
