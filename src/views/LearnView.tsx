@@ -120,9 +120,24 @@ export const LearnView: React.FC<LearnViewProps> = ({
         limit: 20,
       });
 
-      setLibraryItems(res.items || []);
-      setTotalCount(res.total || 0);
-      setTotalPages(res.totalPages || 1);
+      // Final UI-layer guard. Chinese varieties share zh.json, so never trust
+      // a broad "Chinese" result to be variant-safe. This keeps the Learn screen
+      // correct even when an old cached response or legacy record slips through.
+      const requestedVariant =
+        activeVariant.id === 'zh' ? 'zh-cmn' : activeVariant.id;
+
+      const variantSafeItems = (res.items || []).filter((item) => {
+        if (!requestedVariant.startsWith('zh-')) return true;
+        const itemVariant =
+          item.languageVariant ||
+          ((item.languageSpecific as any)?.type === 'mandarin' ? 'zh-cmn' :
+           (item.languageSpecific as any)?.type === 'cantonese' ? 'zh-yue' : undefined);
+        return itemVariant === requestedVariant;
+      });
+
+      setLibraryItems(variantSafeItems);
+      setTotalCount(res.total || variantSafeItems.length);
+      setTotalPages(Math.max(1, Math.ceil((res.total || variantSafeItems.length) / 20)));
       if (res.filters?.categories && res.filters.categories.length > 0) {
         setAvailableCategories(res.filters.categories);
       }
@@ -133,6 +148,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
     }
   }, [
     targetLanguageId,
+    activeVariant.id,
     searchQuery,
     selectedCategory,
     selectedDifficulty,

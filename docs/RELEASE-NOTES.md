@@ -51,3 +51,8 @@ Set `GEMINI_API_KEY` in Vercel before testing AI in production.
 - Added defensive variant inference inside the vocabulary API so callers using `zh-cmn` or `zh-yue` cannot accidentally load both varieties from the shared `zh.json` content file.
 - Applied the same protection to category filters and recommendations.
 - Current curated Chinese library: 148 Mandarin items and 78 Cantonese items.
+
+
+## Chinese variety filtering hotfix
+
+The Learn Library now applies a final defensive filter for Chinese varieties and normalizes legacy records. Mandarin (`zh-cmn`) and Cantonese (`zh-yue`) cannot appear in the same Mandarin/Cantonese library view even when both are stored in the shared `zh.json` content pack. The service-worker shell/runtime cache version was also bumped to force the corrected frontend bundle to replace older cached application code.

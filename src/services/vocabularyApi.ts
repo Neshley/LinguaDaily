@@ -19,6 +19,8 @@ function contentLanguageId(language?: string) {
 
 async function loadLanguage(language: string): Promise<{ language: any; items: LearningItem[] }> {
   const id = contentLanguageId(language) || 'zh';
+  // Cache the underlying content by file ID. Variant filtering is always
+  // applied after loading, so Mandarin/Cantonese cannot leak into each other.
   let pending = cache.get(id);
   if (!pending) {
     const url = `/data/languages/${encodeURIComponent(id)}.json`;
@@ -40,9 +42,23 @@ async function loadLanguage(language: string): Promise<{ language: any; items: L
   return pending;
 }
 
+function canonicalVariantForItem(item: LearningItem): string | undefined {
+  if (item.languageVariant) return item.languageVariant;
+
+  // Defensive fallback for legacy/cached records that predate explicit
+  // languageVariant metadata. Chinese is especially important because
+  // Mandarin and Cantonese share the same zh.json content file.
+  const specificType = (item.languageSpecific as any)?.type;
+  if (specificType === 'mandarin') return 'zh-cmn';
+  if (specificType === 'cantonese') return 'zh-yue';
+
+  return item.languageId === 'zh' ? 'zh-cmn' : item.languageId;
+}
+
 function applyVariant(items: LearningItem[], variant?: string) {
   if (!variant || variant === 'all') return items;
-  return items.filter(item => item.languageVariant === variant);
+  const normalized = variant === 'zh' ? 'zh-cmn' : variant;
+  return items.filter(item => canonicalVariantForItem(item) === normalized);
 }
 
 function buildFilters(items: LearningItem[]) {

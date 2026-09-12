@@ -1,5 +1,5 @@
-const SHELL_CACHE = 'linguadaily-shell-v2';
-const RUNTIME_CACHE = 'linguadaily-runtime-v2';
+const SHELL_CACHE = 'linguadaily-shell-v3';
+const RUNTIME_CACHE = 'linguadaily-runtime-v3';
 const OFFLINE_PACK_CACHE = 'linguadaily-offline-language-packs-v2';
 const APP_SHELL = ['/', '/manifest.webmanifest', '/icons/linguadaily-pwa-192.png', '/icons/linguadaily-pwa-512.png'];
 
