@@ -44,7 +44,7 @@ const normalize = (row) => {
 };
 
 for (const language of languages) {
-  const items = db.prepare('SELECT * FROM learning_items WHERE language_id = ? ORDER BY frequency_rank ASC, id ASC').all(language.id);
+  const items = db.prepare('SELECT * FROM learning_items WHERE language_id = ? AND is_curated = 1 ORDER BY frequency_rank ASC, id ASC').all(language.id);
   const result = items.map(normalize);
   const exampleStmt = db.prepare('SELECT native_text, pronunciation, translation, audio_url, difficulty FROM item_examples WHERE item_id = ? ORDER BY id ASC');
   for (const item of result) {
@@ -83,7 +83,7 @@ for (const language of languages) {
 
 const manifest = {
   generatedAt: new Date().toISOString(),
-  totalItems: Number(db.prepare('SELECT COUNT(*) AS c FROM learning_items').get().c),
+  totalItems: Number(db.prepare('SELECT COUNT(*) AS c FROM learning_items WHERE is_curated = 1').get().c),
   languages: languages.map(l => ({ id: l.id, name: l.name, nativeName: l.native_name, defaultVarietyId: l.default_variety_id })),
 };
 fs.writeFileSync(path.join(root, 'public', 'data', 'manifest.json'), JSON.stringify(manifest, null, 2));

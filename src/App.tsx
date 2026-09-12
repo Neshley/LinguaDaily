@@ -45,7 +45,6 @@ import { ProgressView } from './views/ProgressView';
 import { WordBankManager } from './components/WordBankManager';
 import { SettingsModal } from './components/SettingsModal';
 import { LanguageVariantModal } from './components/LanguageVariantModal';
-import { PWAStatus } from './components/PWAStatus';
 
 export default function App() {
   const [activeLanguage, setActiveLanguage] = useState<SupportedLanguageId>(loadActiveLanguage);
@@ -160,8 +159,6 @@ export default function App() {
 
       if (active === 'zh-cmn') {
         return (
-    <>
-      <PWAStatus />
           wordLang === 'zh-cmn' ||
           wordVar === 'zh-cmn' ||
           (w.languageId === 'zh' && wordVar !== 'zh-yue')
@@ -527,7 +524,6 @@ export default function App() {
         onClose={() => setIsLanguageModalOpen(false)}
         onSelectVariant={handleSelectVariant}
       />
-      </div>
-    </>
+    </div>
   );
 }

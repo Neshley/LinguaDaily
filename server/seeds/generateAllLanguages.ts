@@ -35,7 +35,7 @@ export function generateLanguageLibrary(
     // Populate default language-specific metadata if not provided
     let enrichedSpec = spec;
     if (!enrichedSpec) {
-      if (langVariant === 'zh-cmn' || langId === 'zh') {
+      if (langVariant === 'zh-cmn') {
         enrichedSpec = {
           type: 'mandarin',
           data: {
@@ -52,7 +52,7 @@ export function generateLanguageLibrary(
           data: {
             traditional: w,
             jyutping: p,
-            tones: [1, 2],
+            tones: (p.match(/[1-6](?=\s|$)/g) || []).map(Number),
             spokenRegister: 'Colloquial',
           },
         };
@@ -222,139 +222,13 @@ export function generateLanguageLibrary(
     );
   }
 
-  // 7. Systematically generate natural collocations until reaching target count
-  for (const v of config.verbs) {
-    for (const n of config.nouns) {
-      if (items.length >= targetCount) break;
-
-      const ex = config.buildExample(v, n);
-      let collocationText = '';
-      let collocationMeaning = '';
-      let collocationPron = '';
-
-      if (langId === 'zh') {
-        collocationText = `${v.w}${n.w}`;
-        collocationMeaning = `${v.m} ${n.m}`;
-        collocationPron = `${v.p} ${n.p}`;
-      } else if (langId === 'ja') {
-        collocationText = `${n.w}を${v.w}`;
-        collocationMeaning = `${v.m} ${n.m}`;
-        collocationPron = `${n.p} o ${v.p}`;
-      } else if (langId === 'ko') {
-        collocationText = `${n.w}을/를 ${v.w}`;
-        collocationMeaning = `${v.m} ${n.m}`;
-        collocationPron = `${n.p} ${v.p}`;
-      } else if (langId === 'es') {
-        collocationText = `${v.w} ${n.w}`;
-        collocationMeaning = `${v.m} ${n.m}`;
-        collocationPron = `${v.p} ${n.p}`;
-      } else if (langId === 'fr') {
-        collocationText = `${v.w} ${n.w}`;
-        collocationMeaning = `${v.m} ${n.m}`;
-        collocationPron = `${v.p} ${n.p}`;
-      } else if (langId === 'de') {
-        collocationText = `${n.w} ${v.w}`;
-        collocationMeaning = `${v.m} ${n.m}`;
-        collocationPron = `${n.p} ${v.p}`;
-      }
-
-      let spec: any = undefined;
-      if (langVariant === 'zh-cmn' || langId === 'zh') {
-        spec = {
-          type: 'mandarin',
-          data: {
-            simplified: collocationText,
-            traditional: collocationText,
-            pinyin: collocationPron,
-            tones: extractMandarinTones(collocationPron),
-            hskLevel: 'HSK 2-3',
-          },
-        };
-      } else if (langVariant === 'zh-yue') {
-        spec = {
-          type: 'cantonese',
-          data: {
-            traditional: collocationText,
-            jyutping: collocationPron,
-            tones: [1, 2],
-            spokenRegister: 'Colloquial',
-          },
-        };
-      } else if (langId === 'ja') {
-        spec = {
-          type: 'japanese',
-          data: {
-            kanji: collocationText,
-            hiragana: `${n.spec?.data?.hiragana || n.w}を${v.spec?.data?.hiragana || v.w}`,
-            romaji: collocationPron,
-            politenessLevel: 'plain',
-            jlptLevel: v.spec?.data?.jlptLevel || 'N5',
-          },
-        };
-      } else if (langId === 'ko') {
-        spec = {
-          type: 'korean',
-          data: {
-            hangul: collocationText,
-            revisedRomanization: collocationPron,
-            speechLevel: 'informal-polite',
-            topikLevel: 'TOPIK I',
-          },
-        };
-      } else if (langId === 'es') {
-        spec = {
-          type: 'spanish',
-          data: {
-            verbType: v.spec?.data?.verbType || '-ar',
-            nounGender: n.spec?.data?.gender || 'masculine',
-            article: n.spec?.data?.article || 'el',
-            regionalVariant: 'Universal',
-          },
-        };
-      } else if (langId === 'fr') {
-        spec = {
-          type: 'french',
-          data: {
-            nounGender: n.spec?.data?.gender || 'masculine',
-            article: n.spec?.data?.article || 'le',
-            liaisonHint: ['a', 'e', 'i', 'o', 'u', 'h'].includes(n.w.toLowerCase()[0]),
-          },
-        };
-      } else if (langId === 'de') {
-        spec = {
-          type: 'german',
-          data: {
-            nounGender: n.spec?.data?.gender || 'neuter',
-            article: n.spec?.data?.article || 'das',
-            separable: false,
-          },
-        };
-      }
-
-      addItem(
-        collocationText,
-        collocationMeaning,
-        collocationPron,
-        'Collocation',
-        n.c,
-        'elementary',
-        'collocation',
-        ex,
-        spec
-      );
-      const generated = items[items.length - 1];
-      if (generated) {
-        generated.contentQuality = {
-          tier: 'generated-pattern',
-          status: 'needs-review',
-          score: 35,
-          trustedForCoreLearning: false,
-          source: 'Linguadaily template generator',
-        };
-      }
-    }
-    if (items.length >= targetCount) break;
-  }
+  // 7. Do NOT synthesize verb+noun collocations.
+  //
+  // A mechanically combined verb + noun is not evidence of a natural
+  // collocation. These candidates previously produced learner-facing errors
+  // such as "學智能電話" ("to learn smartphone") and language-specific
+  // grammar errors in Japanese/Korean. New collocations must be explicitly
+  // authored/reviewed before they enter the trusted content library.
 
   return items;
 }

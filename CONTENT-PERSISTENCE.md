@@ -20,7 +20,7 @@ Run:
 npm run content:generate
 ```
 
-This generates the datasets, uses a database-level unique content identity to reject duplicates, exports the resulting library into `public/data/languages/`, verifies it, and runs the quality audit.
+This removes legacy untrusted generated-pattern records, builds the explicitly authored/reviewed seed library, uses a database-level unique content identity to reject duplicates, exports only trusted content into `public/data/languages/`, verifies it, and runs the quality audit.
 
 ## Duplicate protection
 
@@ -29,3 +29,9 @@ Each learning item receives a normalized identity based on language variety, ite
 ## Deployment
 
 The JSON files are committed with the project and served by Vercel as static content. Vercel does not need a writable SQLite database for visitors.
+
+## Trust boundary
+
+The generator no longer creates synthetic verb+noun collocations. Unreviewed generated-pattern records are removed before export, and the export step only includes `is_curated = 1` records. This prevents mechanically generated phrases from appearing in learner-facing content.
+
+Cantonese pronunciation metadata uses the tones encoded in Jyutping rather than a hard-coded tone list.

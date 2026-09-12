@@ -13,8 +13,9 @@
     "content:export": "node scripts/export-content.mjs",
     "verify:content": "node scripts/verify-content.mjs",
     "audit:content": "node scripts/content-quality-audit.mjs",
-    "content:generate": "tsx scripts/generate-content.ts && node scripts/export-content.mjs && node scripts/verify-content.mjs && node scripts/content-quality-audit.mjs",
-    "content:dedupe": "node scripts/dedupe-content.mjs"
+    "content:generate": "node scripts/purge-untrusted-content.mjs && tsx scripts/generate-content.ts && node scripts/export-content.mjs && node scripts/verify-content.mjs && node scripts/content-quality-audit.mjs",
+    "content:dedupe": "node scripts/dedupe-content.mjs",
+    "content:purge-untrusted": "node scripts/purge-untrusted-content.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

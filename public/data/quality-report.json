@@ -1,45 +1,45 @@
 {
-  "generatedAt": "2026-09-11T22:06:38.020Z",
+  "generatedAt": "2026-09-12T04:45:01.307Z",
   "languages": [
     {
       "id": "de",
-      "total": 3102,
+      "total": 132,
       "core": 132,
-      "generated": 2970
+      "generated": 0
     },
     {
       "id": "es",
-      "total": 3150,
+      "total": 138,
       "core": 138,
-      "generated": 3012
+      "generated": 0
     },
     {
       "id": "fr",
-      "total": 3150,
+      "total": 133,
       "core": 133,
-      "generated": 3017
+      "generated": 0
     },
     {
       "id": "ja",
-      "total": 3150,
+      "total": 138,
       "core": 138,
-      "generated": 3012
+      "generated": 0
     },
     {
       "id": "ko",
-      "total": 3150,
+      "total": 138,
       "core": 138,
-      "generated": 3012
+      "generated": 0
     },
     {
       "id": "zh",
-      "total": 4200,
+      "total": 226,
       "core": 226,
-      "generated": 3974
+      "generated": 0
     }
   ],
-  "total": 19902,
+  "total": 905,
   "core": 905,
-  "generated": 18997,
+  "generated": 0,
   "issues": []
 }
