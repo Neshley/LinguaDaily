@@ -75,7 +75,8 @@ export interface VocabularySearchParams {
 
 export async function searchVocabulary(params: VocabularySearchParams): Promise<VocabularyQueryResult> {
   const data = await loadLanguage(params.language || 'zh');
-  let items = applyVariant(data.items, params.languageVariant);
+  const inferredVariant = (params.language === 'zh-cmn' || params.language === 'zh-yue') ? params.language : undefined;
+  let items = applyVariant(data.items, params.languageVariant || inferredVariant);
   if (params.qualityTier && params.qualityTier !== 'all') {
     items = items.filter(i => i.contentQuality?.tier === params.qualityTier);
   }
@@ -116,9 +117,10 @@ export async function searchVocabulary(params: VocabularySearchParams): Promise<
   };
 }
 
-export async function fetchVocabularyCategories(language?: string): Promise<{ name: string; count: number }[]> {
+export async function fetchVocabularyCategories(language?: string, languageVariant?: string): Promise<{ name: string; count: number }[]> {
   const data = await loadLanguage(language || 'zh');
-  return buildFilters(data.items).categories;
+  const inferredVariant = (language === 'zh-cmn' || language === 'zh-yue') ? language : undefined;
+  return buildFilters(applyVariant(data.items, languageVariant || inferredVariant)).categories;
 }
 
 export async function fetchRandomVocabulary(language: string, count = 20, category?: string, difficulty?: string): Promise<LearningItem[]> {
@@ -132,11 +134,12 @@ export async function fetchRandomVocabulary(language: string, count = 20, catego
 
 export async function fetchVocabularyRecommendations(language: string, currentBand = 'high', strategy = 'expand_core', limit = 10): Promise<LearningItem[]> {
   const data = await loadLanguage(language);
-  let pool = data.items.filter(i => i.contentQuality?.trustedForCoreLearning !== false && (i.frequencyBand === currentBand || i.frequencyBand === 'high'));
+  let pool = applyVariant(data.items, language === 'zh-cmn' || language === 'zh-yue' ? language : undefined)
+    .filter(i => i.contentQuality?.trustedForCoreLearning !== false && (i.frequencyBand === currentBand || i.frequencyBand === 'high'));
   if (strategy === 'conversational' || strategy === 'phrases') {
-    pool = data.items.filter(i => ['phrase', 'question', 'response', 'collocation'].includes(i.itemType));
+    pool = pool.filter(i => ['phrase', 'question', 'response', 'collocation'].includes(i.itemType));
   } else if (strategy === 'beginner' || strategy === 'popular') {
-    pool = data.items.filter(i => i.frequencyRank <= 500);
+    pool = pool.filter(i => i.frequencyRank <= 500);
   }
   return [...pool].sort((a, b) => a.frequencyRank - b.frequencyRank).slice(0, limit);
 }

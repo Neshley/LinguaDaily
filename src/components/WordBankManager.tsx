@@ -103,6 +103,7 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
       const targetLang = language.id === 'zh' ? 'zh-cmn' : language.id;
       const res = await searchVocabulary({
         language: targetLang,
+        languageVariant: (language.id === 'zh-cmn' || language.id === 'zh-yue') ? language.id : undefined,
         q: libSearchQuery.trim() || undefined,
         category: libCategory !== 'All Categories' ? libCategory : undefined,
         difficulty: libDifficulty !== 'all' ? libDifficulty : undefined,
@@ -135,7 +136,10 @@ export const WordBankManager: React.FC<WordBankManagerProps> = ({
 
   useEffect(() => {
     const targetLang = language.id === 'zh' ? 'zh-cmn' : language.id;
-    fetchVocabularyCategories(targetLang)
+    fetchVocabularyCategories(
+      targetLang,
+      (language.id === 'zh-cmn' || language.id === 'zh-yue') ? language.id : undefined
+    )
       .then((cats) => {
         if (cats && cats.length > 0) {
           setLibCategories(cats);

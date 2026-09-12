@@ -43,3 +43,11 @@ Set `GEMINI_API_KEY` in Vercel before testing AI in production.
 - Gemini requires an internet connection.
 - Durable multi-device learner persistence is not yet the primary storage layer.
 - New generated language material still requires human/linguistic review before promotion.
+
+## Chinese variety filtering fix
+
+- Fixed the vocabulary library so selecting **Mandarin Chinese** shows only `zh-cmn` content.
+- Fixed the vocabulary library so selecting **Cantonese** shows only `zh-yue` content.
+- Added defensive variant inference inside the vocabulary API so callers using `zh-cmn` or `zh-yue` cannot accidentally load both varieties from the shared `zh.json` content file.
+- Applied the same protection to category filters and recommendations.
+- Current curated Chinese library: 148 Mandarin items and 78 Cantonese items.

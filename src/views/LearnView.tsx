@@ -92,14 +92,17 @@ export const LearnView: React.FC<LearnViewProps> = ({
 
   // Load distinct categories for active language
   useEffect(() => {
-    fetchVocabularyCategories(targetLanguageId)
+    fetchVocabularyCategories(
+      targetLanguageId,
+      (activeVariant.id === 'zh-cmn' || activeVariant.id === 'zh-yue') ? activeVariant.id : undefined
+    )
       .then((cats) => {
         if (cats && cats.length > 0) {
           setAvailableCategories(cats);
         }
       })
       .catch((err) => console.error('Failed to load categories for', targetLanguageId, err));
-  }, [targetLanguageId]);
+  }, [targetLanguageId, activeVariant.id]);
 
   // Query server library
   const loadLibrary = useCallback(async () => {
@@ -107,6 +110,7 @@ export const LearnView: React.FC<LearnViewProps> = ({
     try {
       const res = await searchVocabulary({
         language: targetLanguageId,
+        languageVariant: (activeVariant.id === 'zh-cmn' || activeVariant.id === 'zh-yue') ? activeVariant.id : undefined,
         q: searchQuery.trim() || undefined,
         category: selectedCategory !== 'All Categories' ? selectedCategory : undefined,
         difficulty: selectedDifficulty !== 'all' ? selectedDifficulty : undefined,
