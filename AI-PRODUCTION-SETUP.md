@@ -21,3 +21,11 @@ The app uses the stable `gemini-3.8-flash` model.
 ## Offline behavior
 
 AI calls intentionally require an internet connection. Downloaded language packs, vocabulary search, review data, bookmarks, and local learning state remain usable offline. When the device reconnects, AI controls become available again.
+
+## Quick production check
+
+After deploying to Vercel, open `/api/gemini/health` on your deployed domain. It should return JSON with `ok: true` and `configured: true`.
+
+If `configured` is `false`, add `GEMINI_API_KEY` in the Vercel project Environment Variables for the deployment environment and redeploy.
+
+The AI endpoints use Vercel's standard Web Request/Response function interface and call the Gemini REST API server-side, so the API key is never exposed to the browser.

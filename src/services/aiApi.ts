@@ -18,9 +18,15 @@ async function postAi(path: string, body: unknown) {
     error.code = 'NETWORK';
     throw error;
   }
+  const contentType = response.headers.get('content-type') || '';
   const data = await response.json().catch(() => ({}));
   if (!response.ok || !data.success) {
-    const error: AiError = new Error(data.error || 'The AI service returned an error.');
+    const fallback = response.status === 404
+      ? 'The AI endpoint is not deployed. Redeploy the latest project to Vercel.'
+      : !contentType.includes('application/json')
+        ? `The AI server returned an unexpected response (HTTP ${response.status}). Check the Vercel Function logs.`
+        : 'The AI service returned an error.';
+    const error: AiError = new Error(data.error || fallback);
     error.isApiKeyMissing = Boolean(data.isApiKeyMissing);
     error.code = response.status === 429 ? 'RATE_LIMIT' : response.status === 401 || response.status === 403 ? 'AUTH' : 'AI_ERROR';
     throw error;
