@@ -207,3 +207,7 @@ See [`docs/SECURITY.md`](docs/SECURITY.md).
 ## License
 
 No open-source license is declared in this repository. Treat the project as proprietary unless the project owner explicitly adds a license.
+
+## Current Mandarin content
+
+Linguadaily currently ships **1,000 Mandarin vocabulary entries** and **78 Cantonese entries** in the Chinese content pack. Mandarin uses Hanyu Pinyin; Cantonese uses Jyutping. Mandarin expansion records are review-required and are kept separate from Cantonese at the `languageVariant` level.

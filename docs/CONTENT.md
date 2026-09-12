@@ -68,3 +68,16 @@ npm run audit:content
 ```
 
 When production JSON changes, commit the resulting static data files with the code change.
+
+## Mandarin expansion — September 2026
+
+The Mandarin (`zh-cmn`) library has been expanded to **1,000 distinct entries** while keeping Cantonese (`zh-yue`) separate.
+
+- Mandarin: 1,000 entries
+- Cantonese: 78 entries
+- Chinese file total: 1,078 entries
+- Mandarin pronunciation system: Hanyu Pinyin
+- Cantonese pronunciation system: Jyutping
+- Expanded entries are marked `seed-review-required` and `trustedForCoreLearning: false` until reviewed.
+- No `generated-pattern` content was introduced.
+- No duplicate Mandarin identity keys were found in the expansion.

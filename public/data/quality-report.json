@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T05:19:51.880Z",
+  "generatedAt": "2026-09-12T06:22:22.197Z",
   "languages": [
     {
       "id": "de",
@@ -33,13 +33,13 @@
     },
     {
       "id": "zh",
-      "total": 226,
-      "core": 226,
+      "total": 1078,
+      "core": 1078,
       "generated": 0
     }
   ],
-  "total": 905,
-  "core": 905,
+  "total": 1757,
+  "core": 1757,
   "generated": 0,
   "issues": []
 }
