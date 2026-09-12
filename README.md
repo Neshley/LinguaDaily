@@ -139,7 +139,7 @@ public/data/quality-report.json
 
 The local SQLite database and generators are authoring/build-time infrastructure. Vercel does not need a writable SQLite database to serve learners.
 
-The current learner-facing library contains **905 trusted seed-curated items** after removal of legacy synthetic generated-pattern records.
+The current learner-facing library is validated by the build-time content checks; see `public/data/manifest.json` and `public/data/quality-report.json` for the shipped counts.
 
 See [`docs/CONTENT.md`](docs/CONTENT.md).
 
